@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barangay Information System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy:#0B2545;
+    --navy-light:#13315C;
+    --navy-lighter:#1E4373;
+    --gold:#C9962C;
+    --gold-light:#E4C071;
+    --cream:#F7F4EC;
+    --white:#FFFFFF;
+    --ink:#1C2430;
+    --ink-soft:#5B6472;
+    --red:#8C1F28;
+    --red-light:#FBEAEA;
+    --green:#2F6F4E;
+    --green-light:#EAF4EF;
+    --line:#E1DACB;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);}
+  h1,h2,h3,.brand,.seal-text{font-family:Georgia,"Times New Roman",serif;}
+
+  /* Layout */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:230px;flex-shrink:0;background:var(--navy);color:var(--white);display:flex;flex-direction:column;padding:22px 0;}
+  .seal{width:64px;height:64px;border-radius:50%;border:3px solid var(--gold);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;background:var(--navy-light);}
+  .seal-text{font-size:22px;font-weight:700;color:var(--gold-light);letter-spacing:1px;}
+  .brand{text-align:center;font-size:15px;letter-spacing:2.5px;text-transform:uppercase;color:var(--white);margin:0 14px 4px;}
+  .brand small{display:block;font-family:-apple-system,sans-serif;letter-spacing:.5px;text-transform:none;color:var(--gold-light);font-size:11px;margin-top:4px;}
+  .nav{margin-top:28px;flex:1;}
+  .nav button{width:100%;text-align:left;background:none;border:none;color:#C7D2E3;padding:12px 26px;font-size:13.5px;letter-spacing:.3px;cursor:pointer;border-left:3px solid transparent;transition:background .15s;}
+  .nav button:hover{background:var(--navy-light);}
+  .nav button.active{background:var(--navy-lighter);border-left:3px solid var(--gold);color:var(--white);font-weight:600;}
+  .sidebar-foot{padding:14px 22px 0;font-size:10.5px;color:#7C89A3;border-top:1px solid var(--navy-lighter);margin-top:10px;line-height:1.5;}
+
+  .main{flex:1;padding:30px 38px;max-width:1180px;}
+  .topline{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:22px;border-bottom:2px solid var(--gold);padding-bottom:12px;}
+  .topline h1{font-size:23px;margin:0;color:var(--navy);}
+  .topline .sub{font-size:12px;color:var(--ink-soft);}
+  .datastate{font-size:11px;color:var(--ink-soft);}
+  .datastate strong{color:var(--red);}
+
+  .card{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:20px 22px;margin-bottom:20px;}
+  .card h2{font-size:15px;margin:0 0 14px;color:var(--navy);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .stat{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:6px;padding:14px 16px;}
+  .stat .num{font-family:Georgia,serif;font-size:26px;color:var(--navy);font-weight:700;}
+  .stat .lbl{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;}
+
+  form .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+  form .field{flex:1;min-width:160px;display:flex;flex-direction:column;gap:4px;}
+  label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;}
+  input,select,textarea{padding:8px 10px;border:1px solid var(--line);border-radius:4px;font-size:13.5px;font-family:inherit;background:var(--white);color:var(--ink);}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--gold-light);border-color:var(--gold);}
+  textarea{resize:vertical;min-height:60px;}
+
+  .btn{padding:9px 16px;border-radius:4px;border:none;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.2px;}
+  .btn-primary{background:var(--navy);color:var(--white);}
+  .btn-primary:hover{background:var(--navy-light);}
+  .btn-gold{background:var(--gold);color:var(--navy);}
+  .btn-gold:hover{background:var(--gold-light);}
+  .btn-outline{background:none;border:1px solid var(--navy);color:var(--navy);}
+  .btn-outline:hover{background:var(--navy);color:var(--white);}
+  .btn-danger{background:var(--red-light);color:var(--red);border:1px solid var(--red);}
+  .btn-danger:hover{background:var(--red);color:var(--white);}
+  .btn-sm{padding:5px 10px;font-size:11.5px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);border-bottom:2px solid var(--line);padding:8px 10px;}
+  td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  tr:hover td{background:#FBF9F4;}
+  .tag{font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:600;}
+  .tag-open{background:var(--red-light);color:var(--red);}
+  .tag-closed{background:var(--green-light);color:var(--green);}
+  .empty{padding:26px;text-align:center;color:var(--ink-soft);font-size:13px;border:1px dashed var(--line);border-radius:6px;}
+  .searchbar{display:flex;gap:10px;margin-bottom:14px;}
+  .searchbar input{flex:1;}
+  .actions{display:flex;gap:6px;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .toast{position:fixed;bottom:22px;right:22px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:6px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.2);opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:50;}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  /* Printable certificate */
+  .cert-preview{border:6px double var(--navy);padding:36px 44px;background:#fff;font-family:Georgia,serif;max-width:720px;margin:0 auto;}
+  .cert-preview .cert-head{text-align:center;margin-bottom:18px;}
+  .cert-preview .cert-head .seal2{width:70px;height:70px;border-radius:50%;border:3px solid var(--gold);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:700;font-size:24px;}
+  .cert-preview h3{margin:2px 0;font-size:13px;letter-spacing:1px;color:var(--ink-soft);text-transform:uppercase;}
+  .cert-preview h2{margin:2px 0;font-size:19px;color:var(--navy);letter-spacing:1px;}
+  .cert-preview .cert-title{text-align:center;font-size:22px;letter-spacing:3px;margin:26px 0 20px;color:var(--navy);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0;}
+  .cert-preview p{line-height:1.9;font-size:14.5px;text-align:justify;}
+  .cert-preview .sign{margin-top:50px;text-align:right;}
+  .cert-preview .sign .name{border-top:1px solid var(--ink);display:inline-block;padding-top:4px;font-weight:700;}
+  .helpnote{font-size:11.5px;color:var(--ink-soft);background:#FBF9F4;border:1px solid var(--line);border-radius:4px;padding:8px 12px;margin-bottom:14px;}
+
+  /* Org chart */
+  .orgchart-wrap{overflow-x:auto;padding:10px 0 20px;}
+  .org-connector{width:2px;height:26px;background:var(--gold);margin:0 auto;}
+  .org-row{display:inline-flex;gap:34px;border-top:2px solid var(--gold);padding-top:26px;margin:0 auto;position:relative;width:fit-content;}
+  .org-row.org-row-single{border-top:none;padding-top:0;}
+  .org-level-wrap{display:flex;justify-content:center;}
+  .org-node{position:relative;text-align:center;width:120px;}
+  .org-row:not(.org-row-single) .org-node::before{content:'';position:absolute;top:-26px;left:50%;width:2px;height:26px;background:var(--gold);transform:translateX(-1px);}
+  .org-photo{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);margin:0 auto 8px;display:block;background:#EDE7D6;}
+  .org-photo-placeholder{width:76px;height:76px;border-radius:50%;border:3px solid var(--line);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:#EDE7D6;color:var(--ink-soft);font-size:10px;}
+  .org-name{font-family:Georgia,serif;font-size:13px;font-weight:700;color:var(--navy);line-height:1.25;}
+  .org-position{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
+
+  /* Barangay ID card */
+  .idcard-wrap{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;padding:10px 0;}
+  .idcard{width:340px;height:214px;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.18);font-family:-apple-system,sans-serif;background:var(--white);border:1px solid var(--line);}
+  .idcard-front{background:linear-gradient(150deg,var(--navy) 0%,var(--navy-lighter) 55%,var(--navy) 100%);color:#fff;padding:14px;}
+  .idcard-front .idc-head{display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:8px;margin-bottom:10px;}
+  .idcard-front .idc-seal{width:34px;height:34px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;color:var(--gold);font-weight:700;font-size:14px;}
+  .idcard-front .idc-headtext{font-size:9px;line-height:1.3;}
+  .idcard-front .idc-headtext b{font-size:11px;display:block;color:var(--gold-light);}
+  .idcard-front .idc-body{display:flex;gap:12px;}
+  .idcard-front .idc-photo{width:74px;height:88px;border-radius:4px;object-fit:cover;background:#33436b;border:2px solid var(--gold);flex-shrink:0;}
+  .idcard-front .idc-photo-placeholder{width:74px;height:88px;border-radius:4px;background:#33436b;border:2px solid var(--gold);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#C7D2E3;text-align:center;}
+  .idcard-front .idc-name{font-family:Georgia,serif;font-size:14px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px;}
+  .idcard-front .idc-line{font-size:9.5px;color:#C7D2E3;margin-bottom:2px;}
+  .idcard-front .idc-line b{color:#fff;}
+  .idcard-front .idc-idno{position:absolute;bottom:10px;right:14px;font-size:9px;color:var(--gold-light);letter-spacing:.5px;}
+  .idcard-back{padding:14px;font-size:9.5px;color:var(--ink);}
+  .idcard-back h4{margin:0 0 6px;font-size:10.5px;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line);padding-bottom:4px;}
+  .idcard-back .idc-em{margin-bottom:8px;line-height:1.5;}
+  .idcard-back .idc-sign{margin-top:14px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .idcard-back .idc-sign div{text-align:center;font-size:8.5px;}
+  .idcard-back .idc-sign .sigline{border-top:1px solid var(--ink);width:110px;padding-top:3px;}
+  .idcard-back .idc-valid{position:absolute;bottom:10px;left:14px;font-size:8.5px;color:var(--ink-soft);}
+
+  /* Login screen */
+  #loginScreen{position:fixed;inset:0;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-lighter) 100%);display:flex;align-items:center;justify-content:center;z-index:100;}
+  .login-box{background:var(--white);width:340px;border-radius:8px;padding:34px 30px 28px;box-shadow:0 20px 50px rgba(0,0,0,.35);text-align:center;}
+  .login-box .seal{margin:0 auto 12px;}
+  .login-box h2{margin:0 0 2px;font-size:18px;color:var(--navy);}
+  .login-box .sub{font-size:12px;color:var(--ink-soft);margin-bottom:20px;}
+  .login-box .field{text-align:left;margin-bottom:14px;}
+  .login-box .field label{display:block;margin-bottom:4px;}
+  .login-box input{width:100%;}
+  .login-box .btn{width:100%;margin-top:6px;}
+  .login-error{color:var(--red);font-size:12px;margin-top:10px;min-height:16px;}
+  .login-hint{font-size:11px;color:var(--ink-soft);margin-top:14px;border-top:1px solid var(--line);padding-top:12px;line-height:1.5;}
+  @media print{
+    .sidebar,.topline,.card > h2,.no-print,.datastate{display:none !important;}
+    .card{border:none;padding:0;}
+    body{background:#fff;}
+    body.print-receipt-only #certPreview,
+    body.print-receipt-only #bizPreview{display:none !important;}
+  }
+  @media (max-width:820px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;padding:12px;}
+    .nav{display:flex;flex-wrap:wrap;margin-top:0;}
+    .nav button{width:auto;border-left:none;border-bottom:3px solid transparent;}
+    .nav button.active{border-bottom:3px solid var(--gold);}
+    .grid4{grid-template-columns:repeat(2,1fr);}
+    .main{padding:18px;}
+  }
+</style>
+</head>
+<body>
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="seal" id="loginSeal"><span class="seal-text">B</span></div>
+    <h2>Barangay Information System</h2>
+    <div class="sub">Please sign in to continue</div>
+    <form id="loginForm" onsubmit="return false;">
+      <div class="field"><label>Username</label><input id="login_user" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></div>
+      <div class="field">
+        <label>Password</label>
+        <div style="position:relative;">
+          <input id="login_pass" type="password" autocomplete="current-password" style="width:100%;padding-right:60px;" required>
+          <button type="button" id="togglePass" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-soft);font-size:11px;cursor:pointer;">Show</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="button" id="loginBtn">Sign In</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+    <div class="login-hint">Default account: <strong>admin</strong> / <strong>admin123</strong><br>You can change this later in Settings → Account.</div>
+  </div>
+</div>
+<div class="app" id="appRoot" style="display:none;">
+  <aside class="sidebar">
+    <div class="seal" id="sidebarSeal"><span class="seal-text">B</span></div>
+    <div class="brand">Barangay<br>Information System<small id="brgyNameTag">Configure name in Settings</small></div>
+    <nav class="nav">
+      <button data-sec="dashboard" class="active">Dashboard</button>
+      <button data-sec="residents">Residents</button>
+      <button data-sec="households">Households</button>
+      <button data-sec="certificates">Certificates</button>
+      <button data-sec="bizpermit">Business Permit</button>
+      <button data-sec="blotter">Blotter / Incidents</button>
+      <button data-sec="officials">Officials</button>
+      <button data-sec="bhw">BHW</button>
+      <button data-sec="brgyid">Barangay ID</button>
+      <button data-sec="settings">Settings / Data</button>
+    </nav>
+    <div class="sidebar-foot">Standalone system.<br>Data is kept in this browser tab only — use Export on the Settings tab to save your records to a file.</div>
+    <button id="btnLogout" class="btn btn-outline btn-sm" style="margin:12px 22px 0;background:none;color:#C7D2E3;border-color:var(--navy-lighter);">Logout</button>
+  </aside>
+
+  <main class="main">
+    <div class="topline">
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="sub" id="pageSub">Overview of barangay records</div>
+      </div>
+      <div class="datastate">Session data: <strong id="unsavedFlag">no changes yet</strong><br><span id="autosaveStatus">Auto-save is on for this browser</span></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="section active" id="sec-dashboard">
+      <div class="card no-print" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h2 style="margin:0 0 4px;border:none;padding:0;">Auto-Save</h2>
+          <div style="font-size:12px;color:var(--ink-soft);" id="autosaveStatusMain">Auto-save is on for this browser</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);">
+            <input type="checkbox" id="autosaveToggle" checked style="width:auto;"> Enabled
+          </label>
+          <button class="btn btn-outline btn-sm" id="btnSaveNow">Save Now</button>
+        </div>
+      </div>
+
+      <div class="grid4">
+        <div class="stat"><div class="num" id="statResidents">0</div><div class="lbl">Registered Residents</div></div>
+        <div class="stat"><div class="num" id="statHouseholds">0</div><div class="lbl">Households</div></div>
+        <div class="stat"><div class="num" id="statCerts">0</div><div class="lbl">Certificates Issued</div></div>
+        <div class="stat"><div class="num" id="statBlotterOpen">0</div><div class="lbl">Open Blotter Cases</div></div>
+        <div class="stat"><div class="num" id="statCollections">₱0.00</div><div class="lbl">Total Collections</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Population Report</h2>
+        <div class="grid4" style="margin-bottom:0;">
+          <div class="stat"><div class="num" id="repHouseholds">0</div><div class="lbl">Households</div></div>
+          <div class="stat"><div class="num" id="repTotal">0</div><div class="lbl">Total Population</div></div>
+          <div class="stat"><div class="num" id="repMale">0</div><div class="lbl">Male</div></div>
+          <div class="stat"><div class="num" id="repFemale">0</div><div class="lbl">Female</div></div>
+          <div class="stat"><div class="num" id="repSenior">0</div><div class="lbl">Senior Citizen (60+)</div></div>
+          <div class="stat"><div class="num" id="repMinor">0</div><div class="lbl">Minor / Bata (0–17)</div></div>
+          <div class="stat"><div class="num" id="repInfant">0</div><div class="lbl">Newly Born / Infant</div></div>
+          <div class="stat"><div class="num" id="repPregnant">0</div><div class="lbl">Pregnant / Buntis</div></div>
+          <div class="stat"><div class="num" id="repPwd">0</div><div class="lbl">PWD / Disabled</div></div>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:20px;">
+          <div style="flex:1 1 300px;min-width:280px;">
+            <div style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Population Breakdown</div>
+            <canvas id="popBarCanvas" width="380" height="220" style="width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:6px;"></canvas>
+          </div>
+          <div style="flex:1 1 300px;min-width:280px;">
+            <div style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Gender Distribution</div>
+            <canvas id="popPieCanvas" width="380" height="220" style="width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:6px;"></canvas>
+          </div>
+        </div>
+        <div class="no-print" style="margin-top:14px;"><button class="btn btn-outline" onclick="window.print()">Print Report</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Payment / Collections Report</h2>
+        <div class="grid4" style="margin-bottom:0;">
+          <div class="stat"><div class="num" id="payTotal">₱0.00</div><div class="lbl">Total Collections</div></div>
+          <div class="stat"><div class="num" id="payCerts">₱0.00</div><div class="lbl">From Certificates</div></div>
+          <div class="stat"><div class="num" id="payBiz">₱0.00</div><div class="lbl">From Business Permits</div></div>
+          <div class="stat"><div class="num" id="payCount">0</div><div class="lbl">Total Transactions</div></div>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:20px;">
+          <div style="flex:1 1 300px;min-width:280px;">
+            <div style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Collections by Payment Method</div>
+            <canvas id="payBarCanvas" width="380" height="220" style="width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:6px;"></canvas>
+          </div>
+          <div style="flex:1 1 300px;min-width:280px;">
+            <div style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Certificates vs Business Permits</div>
+            <canvas id="payPieCanvas" width="380" height="220" style="width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:6px;"></canvas>
+          </div>
+        </div>
+        <div class="no-print" style="margin-top:14px;"><button class="btn btn-outline" onclick="window.print()">Print Report</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Recent Activity</h2>
+        <table id="activityTable"><thead><tr><th>Date</th><th>Type</th><th>Details</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="activityEmpty">No activity recorded yet.</div>
+      </div>
+    </section>
+
+    <!-- RESIDENTS -->
+    <section class="section" id="sec-residents">
+      <div class="card">
+        <h2>Add Resident</h2>
+        <form id="residentForm">
+          <div class="row">
+            <div class="field" style="flex:0 0 90px;">
+              <label>Photo</label>
+              <div id="r_photoPreviewWrap" style="width:76px;height:76px;border:1px dashed var(--line);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#FBF9F4;">
+                <img id="r_photoPreview" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <span id="r_photoPlaceholder" style="font-size:9.5px;color:var(--ink-soft);text-align:center;padding:4px;">No photo</span>
+              </div>
+              <input type="file" id="r_photo" accept="image/*" style="margin-top:6px;font-size:10.5px;width:76px;">
+            </div>
+            <div class="field"><label>Surname</label><input id="r_surname" placeholder="Dela Cruz"></div>
+            <div class="field"><label>Given Name</label><input id="r_givenname" placeholder="Juan"></div>
+            <div class="field" style="max-width:90px;"><label>M.I.</label><input id="r_mi" placeholder="M" maxlength="3"></div>
+            <div class="field"><label>Age</label><input type="number" min="0" id="r_age"></div>
+            <div class="field"><label>Gender</label><select id="r_gender"><option>Male</option><option>Female</option></select></div>
+            <div class="field"><label>Civil Status</label><select id="r_civil"><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option></select></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Purok / Zone</label><input id="r_purok" placeholder="Purok 3"></div>
+            <div class="field" style="max-width:100px;"><label>Blk.</label><input id="r_blk" placeholder="5"></div>
+            <div class="field" style="max-width:100px;"><label>Lot</label><input id="r_lot" placeholder="12"></div>
+            <div class="field"><label>Address</label><input id="r_address" placeholder="123 Mabini St."></div>
+            <div class="field"><label>Contact No.</label><input id="r_contact" placeholder="09xx xxx xxxx"></div>
+            <div class="field"><label>Occupation</label><input id="r_occupation" placeholder="e.g. Vendor"></div>
+            <div class="field"><label>Precinct No.</label><input id="r_precinct" placeholder="e.g. 0123A"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Birthdate</label><input type="date" id="r_birthdate"></div>
+            <div class="field"><label>Emergency Contact Name</label><input id="r_emname" placeholder="e.g. Maria Dela Cruz"></div>
+            <div class="field"><label>Emergency Contact No.</label><input id="r_emcontact" placeholder="09xx xxx xxxx"></div>
+          </div>
+          <div class="row">
+            <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+              <input type="checkbox" id="r_pregnant" style="width:auto;">
+              <label style="margin:0;">Pregnant (Buntis)</label>
+            </div>
+            <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+              <input type="checkbox" id="r_infant" style="width:auto;">
+              <label style="margin:0;">Newly Born / Infant (0–1 y/o)</label>
+            </div>
+            <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+              <input type="checkbox" id="r_pwd" style="width:auto;">
+              <label style="margin:0;">PWD / Disabled</label>
+            </div>
+          </div>
+          <button class="btn btn-primary" type="button" id="btnSaveResident">Save Resident</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Resident Records</h2>
+        <div class="searchbar">
+          <input id="searchResidents" placeholder="Search by name, purok, address, or precinct...">
+          <button class="btn btn-outline no-print" id="btnExportResidentsCsv">Export CSV</button>
+        </div>
+        <table id="residentsTable">
+          <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Civil Status</th><th>Purok</th><th>Address</th><th>Contact</th><th>Precinct No.</th><th>Tags</th><th class="no-print">Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty" id="residentsEmpty">No residents added yet.</div>
+      </div>
+
+      <div class="card" id="precinctCard">
+        <h2>Report by Precinct Number</h2>
+        <p class="helpnote" style="margin-bottom:12px;">Automatically tallied from Resident records, grouped by Precinct No. — useful for voter/precinct listings.</p>
+        <div style="overflow-x:auto;">
+          <table id="precinctTable">
+            <thead><tr><th>Precinct No.</th><th>Total</th><th>Male</th><th>Female</th><th>Voting Age (18+)</th><th>Minor (Below 18)</th></tr></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+        <div class="empty" id="precinctEmpty">No resident records yet to tally.</div>
+        <div class="no-print" style="margin-top:14px;display:flex;gap:8px;">
+          <button class="btn btn-outline" id="btnExportPrecinctCsv">Export CSV</button>
+          <button class="btn btn-outline" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOUSEHOLDS -->
+    <section class="section" id="sec-households">
+      <div class="card">
+        <h2>Add Household</h2>
+        <form id="householdForm">
+          <div class="row">
+            <div class="field"><label>Household Head</label><input id="h_head" placeholder="Name of head"></div>
+            <div class="field"><label>Purok / Zone</label><input id="h_purok"></div>
+            <div class="field"><label>Address</label><input id="h_address"></div>
+            <div class="field"><label>No. of Members</label><input type="number" min="1" id="h_members"></div>
+          </div>
+          <button class="btn btn-primary" type="button" id="btnSaveHousehold">Save Household</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Household Records</h2>
+        <div class="no-print" style="margin-bottom:10px;"><button class="btn btn-outline" id="btnExportHouseholdsCsv">Export CSV</button></div>
+        <table id="householdsTable">
+          <thead><tr><th>Household Head</th><th>Purok</th><th>Address</th><th>Members</th><th class="no-print">Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty" id="householdsEmpty">No households added yet.</div>
+      </div>
+    </section>
+
+    <!-- CERTIFICATES -->
+    <section class="section" id="sec-certificates">
+      <div class="card no-print">
+        <h2>Issue a Certificate</h2>
+        <div class="helpnote">Pick a resident on file, or type a name manually, then choose a certificate type. Use Print to produce a paper copy.</div>
+        <form id="certForm">
+          <div class="row">
+            <div class="field"><label>Resident (on file)</label>
+              <select id="c_resident"><option value="">— type name manually below —</option></select>
+            </div>
+            <div class="field"><label>Full Name</label><input id="c_name" placeholder="Full name for the certificate"></div>
+            <div class="field"><label>Certificate Type</label>
+              <select id="c_type">
+                <option>Barangay Clearance</option>
+                <option>Certificate of Residency</option>
+                <option>Certificate of Indigency</option>
+                <option>Certificate of Good Moral Character</option>
+              </select>
+            </div>
+            <div class="field"><label>Purpose</label><input id="c_purpose" placeholder="e.g. Employment requirement"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Amount Paid (₱)</label><input type="number" min="0" step="0.01" id="c_amount" placeholder="0.00"></div>
+            <div class="field"><label>OR / Receipt No.</label><input id="c_orno" placeholder="Auto-suggested, editable"></div>
+            <div class="field"><label>Payment Method</label><select id="c_paymethod"><option>Cash</option><option>GCash</option><option>Bank Transfer</option><option>Other</option></select></div>
+          </div>
+          <button class="btn btn-gold" type="button" id="btnGenCert">Generate Certificate</button>
+        </form>
+      </div>
+
+      <div class="card" id="certPreviewCard" style="display:none;">
+        <h2 class="no-print">Preview</h2>
+        <div class="cert-preview" id="certPreview"></div>
+        <div class="cert-preview" id="receiptPreview" style="display:none;margin-top:24px;"></div>
+        <div class="no-print" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="printFull()">Print</button>
+          <button class="btn btn-outline" id="btnPrintCertReceipt" style="display:none;">Print Receipt Only</button>
+          <button class="btn btn-primary" id="btnLogCert">Save to Issued Log</button>
+        </div>
+      </div>
+
+      <div class="card no-print">
+        <h2>Issued Certificates Log</h2>
+        <div style="margin-bottom:10px;"><button class="btn btn-outline" id="btnExportCertsCsv">Export CSV</button></div>
+        <table id="certsTable"><thead><tr><th>Date</th><th>Name</th><th>Type</th><th>Purpose</th><th>Amount</th><th>OR No.</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="certsEmpty">No certificates issued yet.</div>
+      </div>
+    </section>
+
+    <!-- BUSINESS PERMIT -->
+    <section class="section" id="sec-bizpermit">
+      <div class="card no-print">
+        <h2>Business Information</h2>
+        <form id="bizForm">
+          <div class="row">
+            <div class="field"><label>Owner (on file)</label>
+              <select id="bp_resident"><option value="">— type name manually below —</option></select>
+            </div>
+            <div class="field"><label>Owner's Full Name</label><input id="bp_owner" placeholder="Full name of business owner"></div>
+            <div class="field"><label>Business Name</label><input id="bp_bizname" placeholder="e.g. Aling Nena's Sari-Sari Store"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Kind of Business</label><input id="bp_kind" placeholder="e.g. Sari-sari Store, Restaurant, Repair Shop"></div>
+            <div class="field"><label>Business Address</label><input id="bp_address" placeholder="Business location"></div>
+          </div>
+          <button class="btn btn-gold" type="button" id="btnGenBiz">Generate Business Permit</button>
+        </form>
+      </div>
+
+      <div class="card no-print">
+        <h2>Permit Payment</h2>
+        <div class="helpnote">Payment for the Business Permit is recorded separately from other certificate payments.</div>
+        <form id="bizPaymentForm">
+          <div class="row">
+            <div class="field"><label>Permit Fee (₱)</label><input type="number" min="0" step="0.01" id="bp_amount" placeholder="0.00"></div>
+            <div class="field"><label>OR / Receipt No.</label><input id="bp_orno" placeholder="Auto-suggested, editable"></div>
+            <div class="field"><label>Payment Method</label><select id="bp_paymethod"><option>Cash</option><option>GCash</option><option>Bank Transfer</option><option>Other</option></select></div>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" id="bizPreviewCard" style="display:none;">
+        <h2 class="no-print">Preview</h2>
+        <div class="cert-preview" id="bizPreview"></div>
+        <div class="cert-preview" id="bizReceiptPreview" style="display:none;margin-top:24px;"></div>
+        <div class="no-print" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="printFull()">Print</button>
+          <button class="btn btn-outline" id="btnPrintBizReceipt" style="display:none;">Print Receipt Only</button>
+          <button class="btn btn-primary" id="btnLogBiz">Save to Issued Log</button>
+        </div>
+      </div>
+
+      <div class="card no-print">
+        <h2>Issued Business Permits Log</h2>
+        <div style="margin-bottom:10px;"><button class="btn btn-outline" id="btnExportBizCsv">Export CSV</button></div>
+        <table id="bizTable"><thead><tr><th>Permit No.</th><th>Date</th><th>Owner</th><th>Business Name</th><th>Kind of Business</th><th>Valid Until</th><th>Amount</th><th>OR No.</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="bizEmpty">No business permits issued yet.</div>
+      </div>
+    </section>
+
+    <!-- BLOTTER -->
+    <section class="section" id="sec-blotter">
+      <div class="card no-print">
+        <h2>File a Blotter Entry</h2>
+        <form id="blotterForm">
+          <div class="row">
+            <div class="field"><label>Complainant</label><input id="b_complainant"></div>
+            <div class="field"><label>Respondent</label><input id="b_respondent"></div>
+            <div class="field"><label>Incident Date</label><input type="date" id="b_date"></div>
+            <div class="field"><label>Status</label><select id="b_status"><option>Open</option><option>Closed</option></select></div>
+          </div>
+          <div class="row">
+            <div class="field" style="flex:1 0 100%;"><label>Narrative</label><textarea id="b_narrative" placeholder="Brief description of the incident"></textarea></div>
+          </div>
+          <button class="btn btn-primary" type="button" id="btnSaveBlotter">Save Entry</button>
+        </form>
+      </div>
+      <div class="card no-print">
+        <h2>Blotter Records</h2>
+        <div class="no-print" style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" id="btnExportBlotterCsv">Export CSV</button>
+          <button class="btn btn-gold" id="btnGenBlotterReport">Generate Printable Report</button>
+        </div>
+        <table id="blotterTable"><thead><tr><th>Date</th><th>Complainant</th><th>Respondent</th><th>Status</th><th class="no-print">Actions</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="blotterEmpty">No blotter entries yet.</div>
+      </div>
+
+      <div class="card" id="blotterReportCard" style="display:none;">
+        <h2 class="no-print">Report Preview</h2>
+        <div class="cert-preview" id="blotterReportPreview" style="max-width:100%;"></div>
+        <div class="no-print" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="window.print()">Print / Save as PDF</button>
+          <button class="btn btn-primary" id="btnBlotterWord">Download as Word (.doc)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- OFFICIALS -->
+    <section class="section" id="sec-officials">
+      <div class="card no-print">
+        <h2>Add Official</h2>
+        <form id="officialForm">
+          <div class="row">
+            <div class="field" style="flex:0 0 110px;">
+              <label>Photo</label>
+              <div id="o_photoPreviewWrap" style="width:88px;height:88px;border:1px dashed var(--line);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#FBF9F4;">
+                <img id="o_photoPreview" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <span id="o_photoPlaceholder" style="font-size:10px;color:var(--ink-soft);text-align:center;padding:4px;">No photo</span>
+              </div>
+              <input type="file" id="o_photo" accept="image/*" style="margin-top:6px;font-size:11px;">
+            </div>
+            <div class="field"><label>Name</label><input id="o_name"></div>
+            <div class="field"><label>Position</label><input id="o_position" placeholder="e.g. Punong Barangay, Kagawad"></div>
+            <div class="field"><label>Contact No.</label><input id="o_contact"></div>
+          </div>
+          <button class="btn btn-primary" type="button" id="btnSaveOfficial">Save Official</button>
+        </form>
+      </div>
+      <div class="card no-print">
+        <h2>Barangay Officials</h2>
+        <div class="no-print" style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" id="btnExportOfficialsCsv">Export CSV</button>
+          <button class="btn btn-gold" id="btnGenOrgChart">View Org Chart</button>
+        </div>
+        <table id="officialsTable"><thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Contact</th><th class="no-print">Actions</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="officialsEmpty">No officials added yet.</div>
+      </div>
+
+      <div class="card" id="orgChartCard" style="display:none;">
+        <h2 class="no-print">Organizational Chart Preview</h2>
+        <div id="orgChartHeader" style="text-align:center;margin-bottom:6px;font-family:Georgia,serif;color:var(--navy);"></div>
+        <div class="orgchart-wrap" id="orgChartPreview"></div>
+        <div class="no-print" style="margin-top:10px;display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BHW -->
+    <section class="section" id="sec-bhw">
+      <div class="card no-print">
+        <h2>Add Barangay Health Worker</h2>
+        <form id="bhwForm">
+          <div class="row">
+            <div class="field" style="flex:0 0 110px;">
+              <label>Photo</label>
+              <div id="bhw_photoPreviewWrap" style="width:88px;height:88px;border:1px dashed var(--line);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#FBF9F4;">
+                <img id="bhw_photoPreview" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <span id="bhw_photoPlaceholder" style="font-size:10px;color:var(--ink-soft);text-align:center;padding:4px;">No photo</span>
+              </div>
+              <input type="file" id="bhw_photo" accept="image/*" style="margin-top:6px;font-size:11px;">
+            </div>
+            <div class="field"><label>Name</label><input id="bhw_name"></div>
+            <div class="field"><label>Area of Coverage</label><input id="bhw_area" placeholder="e.g. Purok 1–3"></div>
+            <div class="field"><label>Contact No.</label><input id="bhw_contact"></div>
+          </div>
+          <button class="btn btn-primary" type="button" id="btnSaveBhw">Save BHW</button>
+        </form>
+      </div>
+      <div class="card no-print">
+        <h2>Barangay Health Workers</h2>
+        <div class="no-print" style="margin-bottom:10px;"><button class="btn btn-outline" id="btnExportBhwCsv">Export CSV</button></div>
+        <table id="bhwTable"><thead><tr><th>Photo</th><th>Name</th><th>Area of Coverage</th><th>Contact</th><th class="no-print">Actions</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="bhwEmpty">No BHW records added yet.</div>
+      </div>
+
+      <div class="card" id="censusCard">
+        <h2>Health Census by Purok / Area</h2>
+        <p class="helpnote" style="margin-bottom:12px;">Automatically tallied from Resident records, grouped by Purok/Zone — matches each BHW's assigned area of coverage.</p>
+        <div style="overflow-x:auto;">
+          <table id="censusTable">
+            <thead><tr><th>Purok / Area</th><th>Total Pop.</th><th>Male</th><th>Female</th><th>Senior</th><th>Minor</th><th>Infant</th><th>Pregnant</th><th>PWD</th></tr></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+        <div class="empty" id="censusEmpty">No resident records yet to tally.</div>
+        <div class="no-print" style="margin-top:14px;display:flex;gap:8px;">
+          <button class="btn btn-outline" id="btnExportCensusCsv">Export CSV</button>
+          <button class="btn btn-outline" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BARANGAY ID -->
+    <section class="section" id="sec-brgyid">
+      <div class="card no-print">
+        <h2>Generate Barangay ID</h2>
+        <div class="helpnote">Pick a resident on file. Their photo, address, and emergency contact (if saved on their record) will be used automatically.</div>
+        <form id="idForm">
+          <div class="row">
+            <div class="field"><label>Resident</label>
+              <select id="id_resident"><option value="">— select a resident —</option></select>
+            </div>
+            <div class="field"><label>Valid For</label>
+              <select id="id_validity"><option value="1">1 Year</option><option value="2">2 Years</option><option value="3">3 Years</option></select>
+            </div>
+          </div>
+          <button class="btn btn-gold" type="button" id="btnGenId">Generate ID</button>
+        </form>
+      </div>
+
+      <div class="card" id="idPreviewCard" style="display:none;">
+        <h2 class="no-print">ID Preview</h2>
+        <div class="idcard-wrap" id="idPreview"></div>
+        <div class="no-print" style="margin-top:16px;display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="window.print()">Print / Save as PDF</button>
+          <button class="btn btn-primary" id="btnLogId">Save to Issued Log</button>
+        </div>
+      </div>
+
+      <div class="card no-print">
+        <h2>Issued IDs Log</h2>
+        <div style="margin-bottom:10px;"><button class="btn btn-outline" id="btnExportIdsCsv">Export CSV</button></div>
+        <table id="idsTable"><thead><tr><th>ID No.</th><th>Name</th><th>Date Issued</th><th>Valid Until</th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="idsEmpty">No IDs issued yet.</div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="section" id="sec-settings">
+      <div class="card">
+        <h2>Barangay Details</h2>
+        <div class="row">
+          <div class="field" style="flex:0 0 110px;">
+            <label>Barangay Logo</label>
+            <div id="s_logoPreviewWrap" style="width:88px;height:88px;border:1px dashed var(--line);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#FBF9F4;">
+              <img id="s_logoPreview" style="display:none;width:100%;height:100%;object-fit:cover;">
+              <span id="s_logoPlaceholder" style="font-size:10px;color:var(--ink-soft);text-align:center;padding:4px;">No logo</span>
+            </div>
+            <input type="file" id="s_logo" accept="image/*" style="margin-top:6px;font-size:11px;">
+            <button type="button" class="btn btn-outline btn-sm" id="btnRemoveLogo" style="margin-top:6px;">Remove</button>
+          </div>
+          <div class="field"><label>Barangay Name</label><input id="s_brgyname" placeholder="Barangay San Isidro"></div>
+          <div class="field"><label>City / Municipality</label><input id="s_city" placeholder="e.g. Quezon City"></div>
+          <div class="field"><label>Province</label><input id="s_province"></div>
+          <div class="field" style="max-width:120px;"><label>Seal Letter/Initial</label><input id="s_sealletter" placeholder="B" maxlength="3"></div>
+        </div>
+        <div class="helpnote" style="margin-top:0;">The "Seal Letter/Initial" is shown inside the seal circle whenever no logo image is uploaded — change it to your barangay's own initial or short code.</div>
+        <button class="btn btn-primary" id="btnSaveSettings">Save Details</button>
+      </div>
+      <div class="card">
+        <h2>Account</h2>
+        <div class="helpnote">Change the sign-in username and password for this system. This account is stored only in this session — export your data after changing it if you want the new credentials to carry over on Import.</div>
+        <form id="accountForm">
+          <div class="row">
+            <div class="field"><label>New Username</label><input id="acc_user" placeholder="Leave blank to keep current"></div>
+            <div class="field"><label>New Password</label><input type="password" id="acc_pass" placeholder="Leave blank to keep current"></div>
+            <div class="field"><label>Confirm New Password</label><input type="password" id="acc_pass_confirm"></div>
+          </div>
+          <button class="btn btn-primary" type="button" id="btnUpdateAccount">Update Account</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Database — Backup &amp; Restore</h2>
+        <div class="helpnote">Auto-save now keeps your data in this browser automatically (see the Auto-Save panel on the Dashboard) — closing the tab or refreshing will no longer lose your records on this same device/browser. However, this browser storage can still be cleared by clearing browser data, and it does not transfer to another device. For that, use <strong>Backup Database</strong> regularly to download a portable file, and <strong>Restore Database</strong> to load a saved file back into the system (this replaces all current data — export a fresh backup first if unsure). "Export All Data (.xlsx)" puts every record type into one Excel file for viewing/printing and is not meant for restoring.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-gold" id="btnExport">Backup Database (.json)</button>
+          <button class="btn btn-gold" id="btnExportAllXlsx">Export All Data (.xlsx)</button>
+          <label class="btn btn-outline" style="cursor:pointer;">Restore Database (.json)
+            <input type="file" id="importFile" accept="application/json" style="display:none;">
+          </label>
+          <button class="btn btn-danger" id="btnClearAll">Clear All Data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.addEventListener('error', function(ev){
+  try{
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#8C1F28;color:#fff;padding:10px 14px;font-family:sans-serif;font-size:12px;z-index:999;';
+    box.textContent = 'System error: ' + ev.message + ' (line ' + ev.lineno + ')';
+    document.body.appendChild(box);
+  }catch(e){}
+});
+// ---------- In-memory data store (no browser storage — see Settings tab for Export/Import) ----------
+const db = {
+  brgy: { name:"", city:"", province:"", logo:"", sealLetter:"B" },
+  auth: { user:"admin", pass:"admin123" },
+  residents: [],
+  households: [],
+  certificates: [],
+  businessPermits: [],
+  blotter: [],
+  officials: [],
+  bhw: [],
+  brgyIds: [],
+  activity: []
+};
+let unsaved = false;
+
+// ---------- Auto-Save (to this browser's local storage) ----------
+const AUTOSAVE_KEY = 'brgy_ims_autosave_v1';
+let autoSaveEnabled = true;
+let autoSaveTimer = null;
+function loadAutosave(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(raw){
+      Object.assign(db, JSON.parse(raw));
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function autoSaveNow(){
+  if(!autoSaveEnabled) return;
+  try{
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(db));
+    const msg = 'Last auto-saved: ' + new Date().toLocaleTimeString();
+    const el = document.getElementById('autosaveStatus');
+    const el2 = document.getElementById('autosaveStatusMain');
+    if(el) el.textContent = msg;
+    if(el2) el2.textContent = msg;
+  }catch(e){
+    const msg = 'Auto-save failed (storage full or unavailable)';
+    const el = document.getElementById('autosaveStatus');
+    const el2 = document.getElementById('autosaveStatusMain');
+    if(el) el.textContent = msg;
+    if(el2) el2.textContent = msg;
+  }
+}
+function scheduleAutoSave(){
+  if(!autoSaveEnabled) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSaveNow, 1200);
+}
+const hadAutosave = loadAutosave();
+setInterval(autoSaveNow, 30000);
+
+document.getElementById('autosaveToggle').addEventListener('change', e=>{
+  autoSaveEnabled = e.target.checked;
+  const msg = autoSaveEnabled ? 'Auto-save is on for this browser' : 'Auto-save is OFF — remember to back up manually';
+  document.getElementById('autosaveStatus').textContent = msg;
+  document.getElementById('autosaveStatusMain').textContent = msg;
+  if(autoSaveEnabled) autoSaveNow();
+});
+document.getElementById('btnSaveNow').addEventListener('click', ()=>{
+  autoSaveNow();
+  toast('Saved to this browser.');
+});
+
+// ---------- Login / Auth ----------
+function attemptLogin(){
+  const u = document.getElementById('login_user').value.trim().toLowerCase();
+  const p = document.getElementById('login_pass').value.trim();
+  const err = document.getElementById('loginError');
+  if(u === db.auth.user.toLowerCase() && p === db.auth.pass){
+    err.textContent = '';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'flex';
+    document.getElementById('login_pass').value = '';
+  } else {
+    err.textContent = 'Incorrect username or password.';
+  }
+}
+document.getElementById('loginBtn').addEventListener('click', attemptLogin);
+document.getElementById('togglePass').addEventListener('click', ()=>{
+  const pf = document.getElementById('login_pass');
+  const btn = document.getElementById('togglePass');
+  if(pf.type === 'password'){ pf.type = 'text'; btn.textContent = 'Hide'; }
+  else{ pf.type = 'password'; btn.textContent = 'Show'; }
+});
+document.getElementById('login_user').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); attemptLogin(); }});
+document.getElementById('login_pass').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); attemptLogin(); }});
+document.getElementById('btnLogout').addEventListener('click', ()=>{
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('login_user').value = '';
+  document.getElementById('login_pass').value = '';
+  document.getElementById('loginError').textContent = '';
+});
+document.getElementById('btnUpdateAccount').addEventListener('click', ()=>{
+  const newUser = document.getElementById('acc_user').value.trim();
+  const newPass = document.getElementById('acc_pass').value;
+  const confirmPass = document.getElementById('acc_pass_confirm').value;
+  if(newPass && newPass !== confirmPass){
+    toast('Passwords do not match.');
+    return;
+  }
+  if(newUser) db.auth.user = newUser;
+  if(newPass) db.auth.pass = newPass;
+  document.getElementById('accountForm').reset();
+  markChanged();
+  toast('Account updated.');
+});
+
+function markChanged(){ unsaved = true; document.getElementById('unsavedFlag').textContent = 'unsaved changes'; scheduleAutoSave(); }
+function markSaved(){ unsaved = false; document.getElementById('unsavedFlag').textContent = 'no changes yet'; }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function sealHtml(){
+  return db.brgy.logo
+    ? `<img src="${db.brgy.logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : escapeHtml(db.brgy.sealLetter || 'B');
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function logActivity(type, details){
+  db.activity.unshift({date:today(), type, details});
+  db.activity = db.activity.slice(0,30);
+  renderActivity();
+}
+
+// ---------- Navigation ----------
+const titles = {
+  dashboard:['Dashboard','Overview of barangay records'],
+  residents:['Residents','Manage resident master list'],
+  households:['Households','Manage household records'],
+  certificates:['Certificates','Generate and log official certificates'],
+  bizpermit:['Barangay Business Permit','Issue business permits and record payment separately'],
+  blotter:['Blotter / Incidents','Record and track incident reports'],
+  officials:['Barangay Officials','Current officials and contact details'],
+  bhw:['Barangay Health Workers','BHW records and their area of coverage'],
+  brgyid:['Barangay ID','Generate a printable Barangay ID for a resident'],
+  settings:['Settings & Data','Barangay details and data backup']
+};
+document.querySelectorAll('.nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+btn.dataset.sec).classList.add('active');
+    document.getElementById('pageTitle').textContent = titles[btn.dataset.sec][0];
+    document.getElementById('pageSub').textContent = titles[btn.dataset.sec][1];
+  });
+});
+
+// ---------- Residents ----------
+let r_photoData = '';
+document.getElementById('r_photo').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    r_photoData = reader.result;
+    const img = document.getElementById('r_photoPreview');
+    img.src = r_photoData; img.style.display = 'block';
+    document.getElementById('r_photoPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+function saveResident(){
+  const surname = r_surname.value.trim(), givenname = r_givenname.value.trim(), mi = r_mi.value.trim().replace(/\.$/,'');
+  if(!surname || !givenname){
+    toast('Please fill in Surname and Given Name.');
+    return;
+  }
+  const fullName = [givenname, mi? mi+'.' : '', surname].filter(Boolean).join(' ');
+  const r = {
+    id:uid(), surname, givenname, mi, name:fullName, age:r_age.value, gender:r_gender.value,
+    civil:r_civil.value, purok:r_purok.value.trim(), blk:r_blk.value.trim(), lot:r_lot.value.trim(), address:r_address.value.trim(),
+    contact:r_contact.value.trim(), occupation:r_occupation.value.trim(), precinct:r_precinct.value.trim(),
+    pregnant:r_pregnant.checked, infant:r_infant.checked, pwd:r_pwd.checked,
+    photo:r_photoData, birthdate:r_birthdate.value, emname:r_emname.value.trim(), emcontact:r_emcontact.value.trim()
+  };
+  db.residents.push(r);
+  document.getElementById('residentForm').reset();
+  r_photoData = '';
+  document.getElementById('r_photoPreview').style.display='none';
+  document.getElementById('r_photoPreview').src='';
+  document.getElementById('r_photoPlaceholder').style.display='block';
+  markChanged(); renderResidents(); renderStats(); renderCertResidentOptions(); renderBizResidentOptions(); renderIdResidentOptions(); renderCensus(); renderPrecinctReport();
+  logActivity('Resident added', r.name);
+  toast('Resident saved.');
+}
+document.getElementById('btnSaveResident').addEventListener('click', saveResident);
+
+function fullAddress(r){
+  const parts = [];
+  if(r.blk) parts.push('Blk. '+r.blk);
+  if(r.lot) parts.push('Lot '+r.lot);
+  if(r.address) parts.push(r.address);
+  return parts.join(', ');
+}
+
+function renderResidents(filter=''){
+  const tbody = document.querySelector('#residentsTable tbody');
+  const f = filter.toLowerCase();
+  const rows = db.residents.filter(r =>
+    !f || r.name.toLowerCase().includes(f) || (r.purok||'').toLowerCase().includes(f) || (r.address||'').toLowerCase().includes(f) || (r.precinct||'').toLowerCase().includes(f) || (r.blk||'').toLowerCase().includes(f) || (r.lot||'').toLowerCase().includes(f)
+  );
+  tbody.innerHTML = rows.map(r=>{
+    const tags = [];
+    if(Number(r.age)>=60) tags.push('Senior');
+    if(r.age!=='' && Number(r.age)<18) tags.push('Minor');
+    if(r.infant) tags.push('Infant');
+    if(r.pregnant) tags.push('Pregnant');
+    if(r.pwd) tags.push('PWD');
+    return `
+    <tr>
+      <td>${escapeHtml(r.name)}</td><td>${r.age||'—'}</td><td>${r.gender}</td><td>${r.civil}</td>
+      <td>${escapeHtml(r.purok)||'—'}</td><td>${escapeHtml(fullAddress(r))||'—'}</td><td>${escapeHtml(r.contact)||'—'}</td><td>${escapeHtml(r.precinct)||'—'}</td>
+      <td>${tags.length? tags.map(t=>`<span class="tag tag-open" style="margin-right:3px;">${t}</span>`).join(''):'—'}</td>
+      <td class="no-print"><div class="actions"><button class="btn btn-danger btn-sm" onclick="deleteResident('${r.id}')">Delete</button></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('residentsEmpty').style.display = rows.length? 'none':'block';
+}
+function deleteResident(id){
+  db.residents = db.residents.filter(r=>r.id!==id);
+  markChanged(); renderResidents(document.getElementById('searchResidents').value); renderStats(); renderCertResidentOptions(); renderBizResidentOptions(); renderIdResidentOptions(); renderCensus(); renderPrecinctReport();
+}
+document.getElementById('searchResidents').addEventListener('input', e=>renderResidents(e.target.value));
+
+// ---------- Households ----------
+function saveHousehold(){
+  const head = h_head.value.trim();
+  if(!head){ toast('Please fill in Household Head.'); return; }
+  const h = {id:uid(), head, purok:h_purok.value.trim(), address:h_address.value.trim(), members:h_members.value||1};
+  db.households.push(h);
+  document.getElementById('householdForm').reset();
+  markChanged(); renderHouseholds(); renderStats();
+  logActivity('Household added', h.head);
+  toast('Household saved.');
+}
+document.getElementById('btnSaveHousehold').addEventListener('click', saveHousehold);
+function renderHouseholds(){
+  const tbody = document.querySelector('#householdsTable tbody');
+  tbody.innerHTML = db.households.map(h=>`
+    <tr><td>${escapeHtml(h.head)}</td><td>${escapeHtml(h.purok)||'—'}</td><td>${escapeHtml(h.address)||'—'}</td><td>${h.members}</td>
+    <td class="no-print"><button class="btn btn-danger btn-sm" onclick="deleteHousehold('${h.id}')">Delete</button></td></tr>`).join('');
+  document.getElementById('householdsEmpty').style.display = db.households.length? 'none':'block';
+}
+function deleteHousehold(id){ db.households = db.households.filter(h=>h.id!==id); markChanged(); renderHouseholds(); renderStats(); }
+
+// ---------- Certificates ----------
+function renderCertResidentOptions(){
+  const sel = document.getElementById('c_resident');
+  sel.innerHTML = '<option value="">— type name manually below —</option>' +
+    db.residents.map(r=>`<option value="${r.id}">${escapeHtml(r.name)} (${escapeHtml(r.purok)||'—'})</option>`).join('');
+}
+document.getElementById('c_resident').addEventListener('change', e=>{
+  const r = db.residents.find(x=>x.id===e.target.value);
+  if(r) document.getElementById('c_name').value = r.name;
+});
+const certBody = {
+  'Barangay Clearance': (name,purok,purpose)=>`This is to certify that <strong>${name}</strong>${purok? ', a resident of '+purok+',' : ''} is known to be of good moral character and has no derogatory record on file in this barangay as of the date of this certification. This clearance is issued upon the request of the above-named person for whatever legal purpose it may serve${purpose? ', particularly for '+purpose+'.' : '.'}`,
+  'Certificate of Residency': (name,purok,purpose)=>`This is to certify that <strong>${name}</strong> is a bona fide resident of this barangay${purok? ', specifically of '+purok : ''}. This certification is issued upon the request of the above-named person${purpose? ' for '+purpose+'.' : ' for whatever legal purpose it may serve.'}`,
+  'Certificate of Indigency': (name,purok,purpose)=>`This is to certify that <strong>${name}</strong>${purok? ', a resident of '+purok+',' : ''} belongs to an indigent family in this barangay based on records and assessment available to this office. This certification is issued upon request${purpose? ' for '+purpose+'.' : ' for whatever legal purpose it may serve.'}`,
+  'Certificate of Good Moral Character': (name,purok,purpose)=>`This is to certify that <strong>${name}</strong>${purok? ', a resident of '+purok+',' : ''} is, to the best of the knowledge of this office, a person of good moral character and standing in this community. This certification is issued upon request${purpose? ' for '+purpose+'.' : ' for whatever legal purpose it may serve.'}`
+};
+function genOrNo(){
+  return 'OR-' + new Date().getFullYear() + '-' + Math.floor(1000+Math.random()*9000);
+}
+function printReceiptOnly(){
+  document.body.classList.add('print-receipt-only');
+  window.print();
+  setTimeout(()=> document.body.classList.remove('print-receipt-only'), 1000);
+}
+function printFull(){
+  document.body.classList.remove('print-receipt-only');
+  window.print();
+}
+window.addEventListener('afterprint', ()=>{
+  document.body.classList.remove('print-receipt-only');
+});
+document.getElementById('btnPrintCertReceipt').addEventListener('click', printReceiptOnly);
+document.getElementById('btnPrintBizReceipt').addEventListener('click', printReceiptOnly);
+document.getElementById('c_type').addEventListener('change', ()=>{
+  if(!document.getElementById('c_orno').value) document.getElementById('c_orno').value = genOrNo();
+});
+document.getElementById('btnGenCert').addEventListener('click', ()=>{
+  const name = c_name.value.trim();
+  if(!name){ toast('Please fill in Full Name.'); return; }
+  const type = c_type.value, purpose = c_purpose.value.trim();
+  const amount = parseFloat(c_amount.value)||0;
+  const orNo = c_orno.value.trim() || genOrNo();
+  const payMethod = c_paymethod.value;
+  const selected = db.residents.find(r=>r.id===c_resident.value);
+  const purok = selected? (fullAddress(selected) || selected.purok) : '';
+  const brgyLine = [db.brgy.name, db.brgy.city, db.brgy.province].filter(Boolean).join(', ') || 'Barangay Name Not Set — see Settings';
+  document.getElementById('certPreview').innerHTML = `
+    <div class="cert-head">
+      <div class="seal2">${sealHtml()}</div>
+      <h3>Republic of the Philippines</h3>
+      <h2>${escapeHtml(brgyLine)}</h2>
+      <h3>Office of the Punong Barangay</h3>
+    </div>
+    <div class="cert-title">${type.toUpperCase()}</div>
+    <p>TO WHOM IT MAY CONCERN:</p>
+    <p>${certBody[type](escapeHtml(name), escapeHtml(purok), escapeHtml(purpose))}</p>
+    <p>Issued this ${new Date().getDate()} day of ${new Date().toLocaleString('en-US',{month:'long'})}, ${new Date().getFullYear()} at the above-mentioned barangay.</p>
+    <div class="sign"><span class="name">Punong Barangay</span></div>
+  `;
+  const receiptEl = document.getElementById('receiptPreview');
+  const printReceiptBtn = document.getElementById('btnPrintCertReceipt');
+  if(amount > 0){
+    receiptEl.style.display = 'block';
+    printReceiptBtn.style.display = 'inline-block';
+    receiptEl.innerHTML = `
+      <div class="cert-head">
+        <div class="seal2">${sealHtml()}</div>
+        <h3>Republic of the Philippines</h3>
+        <h2>${escapeHtml(brgyLine)}</h2>
+        <h3>Office of the Barangay Treasurer</h3>
+      </div>
+      <div class="cert-title" style="font-size:18px;">OFFICIAL PAYMENT RECEIPT</div>
+      <p style="display:flex;justify-content:space-between;"><span>OR / Receipt No.: <strong>${escapeHtml(orNo)}</strong></span><span>Date: ${today()}</span></p>
+      <p>Received from: <strong>${escapeHtml(name)}</strong></p>
+      <p>The amount of: <strong>₱${amount.toFixed(2)}</strong></p>
+      <p>Payment for: <strong>${type}</strong>${purpose? ' — '+escapeHtml(purpose) : ''}</p>
+      <p>Payment method: <strong>${payMethod}</strong></p>
+      <div class="sign"><span class="name">Barangay Treasurer</span></div>
+    `;
+  } else {
+    receiptEl.style.display = 'none';
+    receiptEl.innerHTML = '';
+    printReceiptBtn.style.display = 'none';
+  }
+  document.getElementById('certPreviewCard').style.display = 'block';
+  document.getElementById('certPreviewCard').scrollIntoView({behavior:'smooth'});
+  document.getElementById('btnLogCert').onclick = ()=>{
+    db.certificates.push({id:uid(), date:today(), name, type, purpose, amount, orNo, payMethod});
+    markChanged(); renderCerts(); renderStats();
+    logActivity('Certificate issued', type+' — '+name+(amount>0? ' (₱'+amount.toFixed(2)+')' : ''));
+    toast('Logged to issued certificates.');
+    document.getElementById('certForm').reset();
+    document.getElementById('certPreviewCard').style.display = 'none';
+    document.getElementById('certPreview').innerHTML = '';
+    document.getElementById('receiptPreview').innerHTML = '';
+    document.getElementById('receiptPreview').style.display = 'none';
+    document.getElementById('btnPrintCertReceipt').style.display = 'none';
+  };
+});
+function renderCerts(){
+  const tbody = document.querySelector('#certsTable tbody');
+  tbody.innerHTML = db.certificates.slice().reverse().map(c=>`
+    <tr><td>${c.date}</td><td>${escapeHtml(c.name)}</td><td>${c.type}</td><td>${escapeHtml(c.purpose)||'—'}</td>
+    <td>${c.amount? '₱'+Number(c.amount).toFixed(2) : '—'}</td><td>${escapeHtml(c.orNo)||'—'}</td></tr>`).join('');
+  document.getElementById('certsEmpty').style.display = db.certificates.length? 'none':'block';
+}
+
+// ---------- Business Permit (separated: own fields + own payment) ----------
+function renderBizResidentOptions(){
+  const sel = document.getElementById('bp_resident');
+  sel.innerHTML = '<option value="">— type name manually below —</option>' +
+    db.residents.map(r=>`<option value="${r.id}">${escapeHtml(r.name)} (${escapeHtml(r.purok)||'—'})</option>`).join('');
+}
+document.getElementById('bp_resident').addEventListener('change', e=>{
+  const r = db.residents.find(x=>x.id===e.target.value);
+  if(r) document.getElementById('bp_owner').value = r.name;
+});
+document.getElementById('btnGenBiz').addEventListener('click', ()=>{
+  const owner = bp_owner.value.trim();
+  const bizname = bp_bizname.value.trim();
+  const kind = bp_kind.value.trim();
+  if(!owner || !bizname || !kind){ toast('Please fill in Owner\'s Full Name, Business Name, and Kind of Business.'); return; }
+  const address = bp_address.value.trim();
+  const amount = parseFloat(bp_amount.value)||0;
+  const orNo = bp_orno.value.trim() || genOrNo();
+  const payMethod = bp_paymethod.value;
+  const brgyLine = [db.brgy.name, db.brgy.city, db.brgy.province].filter(Boolean).join(', ') || 'Barangay Name Not Set — see Settings';
+  const permitNo = 'BP-' + new Date().getFullYear() + '-' + Math.floor(1000+Math.random()*9000);
+  const issueDate = new Date();
+  const validUntil = new Date(issueDate);
+  validUntil.setFullYear(validUntil.getFullYear()+1);
+
+  document.getElementById('bizPreview').innerHTML = `
+    <div class="cert-head">
+      <div class="seal2">${sealHtml()}</div>
+      <h3>Republic of the Philippines</h3>
+      <h2>${escapeHtml(brgyLine)}</h2>
+      <h3>Office of the Punong Barangay</h3>
+    </div>
+    <div class="cert-title">BARANGAY BUSINESS PERMIT</div>
+    <p style="display:flex;justify-content:space-between;font-size:13px;"><span>Permit No.: <strong>${permitNo}</strong></span><span>Date Issued: <strong>${issueDate.toISOString().slice(0,10)}</strong></span></p>
+    <p>TO WHOM IT MAY CONCERN:</p>
+    <p>This is to certify that <strong>${escapeHtml(owner)}</strong>, owner/operator of <strong>${escapeHtml(bizname)}</strong>${address? ', located at '+escapeHtml(address) : ''}, engaged in the business of <strong>${escapeHtml(kind)}</strong>, is hereby granted a Barangay Business Permit to operate within the jurisdiction of this barangay, subject to compliance with existing barangay ordinances and applicable laws.</p>
+    <p>This permit is valid from <strong>${issueDate.toISOString().slice(0,10)}</strong> to <strong>${validUntil.toISOString().slice(0,10)}</strong> unless sooner revoked for cause.</p>
+    <div class="sign" style="display:flex;justify-content:space-between;margin-top:50px;text-align:center;">
+      <span class="name" style="border-top:1px solid var(--ink);padding-top:4px;font-weight:700;">${escapeHtml(owner)}<br><span style="font-weight:400;font-size:11px;">Business Owner</span></span>
+      <span class="name" style="border-top:1px solid var(--ink);padding-top:4px;font-weight:700;">Punong Barangay</span>
+    </div>
+  `;
+  const receiptEl = document.getElementById('bizReceiptPreview');
+  const printBizReceiptBtn = document.getElementById('btnPrintBizReceipt');
+  if(amount > 0){
+    receiptEl.style.display = 'block';
+    printBizReceiptBtn.style.display = 'inline-block';
+    receiptEl.innerHTML = `
+      <div class="cert-head">
+        <div class="seal2">${sealHtml()}</div>
+        <h3>Republic of the Philippines</h3>
+        <h2>${escapeHtml(brgyLine)}</h2>
+        <h3>Office of the Barangay Treasurer</h3>
+      </div>
+      <div class="cert-title" style="font-size:18px;">OFFICIAL PAYMENT RECEIPT — BUSINESS PERMIT</div>
+      <p style="display:flex;justify-content:space-between;"><span>OR / Receipt No.: <strong>${escapeHtml(orNo)}</strong></span><span>Date: ${today()}</span></p>
+      <p>Received from: <strong>${escapeHtml(owner)}</strong></p>
+      <p>The amount of: <strong>₱${amount.toFixed(2)}</strong></p>
+      <p>Payment for: <strong>Barangay Business Permit</strong> — ${escapeHtml(bizname)} (${escapeHtml(kind)})</p>
+      <p>Payment method: <strong>${payMethod}</strong></p>
+      <div class="sign"><span class="name">Barangay Treasurer</span></div>
+    `;
+  } else {
+    receiptEl.style.display = 'none';
+    receiptEl.innerHTML = '';
+    printBizReceiptBtn.style.display = 'none';
+  }
+  document.getElementById('bizPreviewCard').style.display = 'block';
+  document.getElementById('bizPreviewCard').scrollIntoView({behavior:'smooth'});
+  document.getElementById('btnLogBiz').onclick = ()=>{
+    db.businessPermits.push({id:uid(), date:today(), owner, bizname, kind, address, amount, orNo, payMethod, permitNo, validUntil: validUntil.toISOString().slice(0,10)});
+    markChanged(); renderBiz();
+    logActivity('Business Permit issued', bizname+' — '+owner+(amount>0? ' (₱'+amount.toFixed(2)+')' : ''));
+    toast('Logged to issued business permits.');
+    document.getElementById('bizForm').reset();
+    document.getElementById('bizPaymentForm').reset();
+    document.getElementById('bizPreviewCard').style.display = 'none';
+    document.getElementById('bizPreview').innerHTML = '';
+    document.getElementById('bizReceiptPreview').innerHTML = '';
+    document.getElementById('bizReceiptPreview').style.display = 'none';
+    document.getElementById('btnPrintBizReceipt').style.display = 'none';
+  };
+});
+function renderBiz(){
+  const tbody = document.querySelector('#bizTable tbody');
+  tbody.innerHTML = db.businessPermits.slice().reverse().map(b=>`
+    <tr><td>${escapeHtml(b.permitNo)||'—'}</td><td>${b.date}</td><td>${escapeHtml(b.owner)}</td><td>${escapeHtml(b.bizname)}</td><td>${escapeHtml(b.kind)}</td>
+    <td>${b.validUntil||'—'}</td><td>${b.amount? '₱'+Number(b.amount).toFixed(2) : '—'}</td><td>${escapeHtml(b.orNo)||'—'}</td></tr>`).join('');
+  document.getElementById('bizEmpty').style.display = db.businessPermits.length? 'none':'block';
+}
+
+// ---------- Barangay ID ----------
+function renderIdResidentOptions(){
+  const sel = document.getElementById('id_resident');
+  sel.innerHTML = '<option value="">— select a resident —</option>' +
+    db.residents.map(r=>`<option value="${r.id}">${escapeHtml(r.name)} (${escapeHtml(r.purok)||'—'})</option>`).join('');
+}
+function genIdNo(){
+  return 'BRGY-ID-' + new Date().getFullYear() + '-' + Math.floor(1000+Math.random()*9000);
+}
+function calcAge(birthdate){
+  if(!birthdate) return '';
+  const b = new Date(birthdate);
+  const diff = Date.now() - b.getTime();
+  return Math.floor(diff / (1000*60*60*24*365.25));
+}
+document.getElementById('btnGenId').addEventListener('click', ()=>{
+  const r = db.residents.find(x=>x.id===id_resident.value);
+  if(!r){ toast('Please select a resident.'); return; }
+  const years = parseInt(id_validity.value)||1;
+  const issueDate = new Date();
+  const validUntil = new Date(issueDate);
+  validUntil.setFullYear(validUntil.getFullYear()+years);
+  const idNo = genIdNo();
+  const brgyLine = [db.brgy.name, db.brgy.city, db.brgy.province].filter(Boolean).join(', ') || 'Barangay Name Not Set';
+  const age = r.birthdate ? calcAge(r.birthdate) : (r.age||'—');
+  const photoHtml = r.photo
+    ? `<img class="idc-photo" src="${r.photo}">`
+    : `<div class="idc-photo-placeholder">No Photo</div>`;
+
+  const front = `
+    <div class="idcard idcard-front">
+      <div class="idc-head">
+        <div class="idc-seal">${sealHtml()}</div>
+        <div class="idc-headtext"><b>${escapeHtml(brgyLine)}</b>Barangay Identification Card</div>
+      </div>
+      <div class="idc-body">
+        ${photoHtml}
+        <div>
+          <div class="idc-name">${escapeHtml(r.name)}</div>
+          <div class="idc-line">Age: <b>${age}</b> &nbsp; Gender: <b>${r.gender}</b></div>
+          <div class="idc-line">Civil Status: <b>${r.civil}</b></div>
+          <div class="idc-line">Address: <b>${escapeHtml(fullAddress(r))||'—'}</b></div>
+          <div class="idc-line">Purok: <b>${escapeHtml(r.purok)||'—'}</b></div>
+        </div>
+      </div>
+      <div class="idc-idno">${idNo}</div>
+    </div>`;
+
+  const back = `
+    <div class="idcard idcard-back">
+      <h4>Emergency Contact</h4>
+      <div class="idc-em">
+        Name: <strong>${escapeHtml(r.emname)||'—'}</strong><br>
+        Contact No.: <strong>${escapeHtml(r.emcontact)||'—'}</strong>
+      </div>
+      <h4>Notice</h4>
+      <div class="idc-em">This ID is property of the Barangay. If found, please return to the Barangay Hall. Not valid if tampered or altered.</div>
+      <div class="idc-sign">
+        <div><div class="sigline">Resident's Signature</div></div>
+        <div><div class="sigline">Punong Barangay</div></div>
+      </div>
+      <div class="idc-valid">Issued: ${issueDate.toISOString().slice(0,10)} &nbsp;|&nbsp; Valid Until: ${validUntil.toISOString().slice(0,10)}</div>
+    </div>`;
+
+  document.getElementById('idPreview').innerHTML = front + back;
+  document.getElementById('idPreviewCard').style.display = 'block';
+  document.getElementById('idPreviewCard').scrollIntoView({behavior:'smooth'});
+  document.getElementById('btnLogId').onclick = ()=>{
+    db.brgyIds.push({id:uid(), idNo, name:r.name, dateIssued:issueDate.toISOString().slice(0,10), validUntil:validUntil.toISOString().slice(0,10)});
+    markChanged(); renderIds();
+    logActivity('Barangay ID issued', r.name+' — '+idNo);
+    toast('Logged to issued IDs.');
+    document.getElementById('idForm').reset();
+    document.getElementById('idPreviewCard').style.display = 'none';
+    document.getElementById('idPreview').innerHTML = '';
+  };
+});
+function renderIds(){
+  const tbody = document.querySelector('#idsTable tbody');
+  tbody.innerHTML = db.brgyIds.slice().reverse().map(i=>`
+    <tr><td>${escapeHtml(i.idNo)}</td><td>${escapeHtml(i.name)}</td><td>${i.dateIssued}</td><td>${i.validUntil}</td></tr>`).join('');
+  document.getElementById('idsEmpty').style.display = db.brgyIds.length? 'none':'block';
+}
+
+// ---------- Blotter ----------
+function saveBlotter(){
+  const complainant = b_complainant.value.trim();
+  if(!complainant){ toast('Please fill in Complainant.'); return; }
+  const b = {id:uid(), complainant, respondent:b_respondent.value.trim(),
+    date:b_date.value||today(), status:b_status.value, narrative:b_narrative.value.trim()};
+  db.blotter.push(b);
+  document.getElementById('blotterForm').reset();
+  markChanged(); renderBlotter(); renderStats();
+  logActivity('Blotter entry filed', b.complainant+' vs '+(b.respondent||'—'));
+  toast('Blotter entry saved.');
+}
+document.getElementById('btnSaveBlotter').addEventListener('click', saveBlotter);
+function renderBlotter(){
+  const tbody = document.querySelector('#blotterTable tbody');
+  tbody.innerHTML = db.blotter.slice().reverse().map(b=>`
+    <tr><td>${b.date}</td><td>${escapeHtml(b.complainant)}</td><td>${escapeHtml(b.respondent)||'—'}</td>
+    <td><span class="tag ${b.status==='Open'?'tag-open':'tag-closed'}">${b.status}</span></td>
+    <td class="no-print"><div class="actions">
+      <button class="btn btn-outline btn-sm" onclick="toggleBlotter('${b.id}')">Toggle Status</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteBlotter('${b.id}')">Delete</button>
+    </div></td></tr>`).join('');
+  document.getElementById('blotterEmpty').style.display = db.blotter.length? 'none':'block';
+}
+function toggleBlotter(id){
+  const b = db.blotter.find(x=>x.id===id);
+  b.status = b.status==='Open'?'Closed':'Open';
+  markChanged(); renderBlotter(); renderStats();
+}
+function deleteBlotter(id){ db.blotter = db.blotter.filter(b=>b.id!==id); markChanged(); renderBlotter(); renderStats(); }
+
+// ---------- Blotter Report (Print / Word export) ----------
+function buildBlotterReportHtml(){
+  const brgyLine = [db.brgy.name, db.brgy.city, db.brgy.province].filter(Boolean).join(', ') || 'Barangay Name Not Set — see Settings';
+  const entries = db.blotter.slice().sort((a,b)=> (a.date<b.date?-1:1));
+  const openCount = db.blotter.filter(b=>b.status==='Open').length;
+  const closedCount = db.blotter.filter(b=>b.status==='Closed').length;
+  const rows = entries.map((b,i)=>`
+    <tr>
+      <td style="border:1px solid #999;padding:6px;text-align:center;">${i+1}</td>
+      <td style="border:1px solid #999;padding:6px;">${b.date}</td>
+      <td style="border:1px solid #999;padding:6px;">${escapeHtml(b.complainant)}</td>
+      <td style="border:1px solid #999;padding:6px;">${escapeHtml(b.respondent)||'—'}</td>
+      <td style="border:1px solid #999;padding:6px;text-align:center;">${b.status}</td>
+      <td style="border:1px solid #999;padding:6px;">${escapeHtml(b.narrative)||'—'}</td>
+    </tr>`).join('');
+  return `
+    <div class="cert-head">
+      <div class="seal2">${sealHtml()}</div>
+      <h3>Republic of the Philippines</h3>
+      <h2>${escapeHtml(brgyLine)}</h2>
+      <h3>Office of the Punong Barangay</h3>
+    </div>
+    <div class="cert-title" style="font-size:18px;letter-spacing:2px;">BLOTTER / INCIDENT REPORT</div>
+    <p style="text-align:right;font-size:12.5px;">Date generated: ${today()}</p>
+    <p style="font-size:13px;">Total Entries: <strong>${entries.length}</strong> &nbsp;|&nbsp; Open: <strong>${openCount}</strong> &nbsp;|&nbsp; Closed: <strong>${closedCount}</strong></p>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;">
+      <thead>
+        <tr style="background:#EDE7D6;">
+          <th style="border:1px solid #999;padding:6px;">#</th>
+          <th style="border:1px solid #999;padding:6px;">Date</th>
+          <th style="border:1px solid #999;padding:6px;">Complainant</th>
+          <th style="border:1px solid #999;padding:6px;">Respondent</th>
+          <th style="border:1px solid #999;padding:6px;">Status</th>
+          <th style="border:1px solid #999;padding:6px;">Narrative</th>
+        </tr>
+      </thead>
+      <tbody>${rows || `<tr><td colspan="6" style="text-align:center;padding:14px;border:1px solid #999;">No blotter entries on file.</td></tr>`}</tbody>
+    </table>
+    <div class="sign"><span class="name">Punong Barangay</span></div>
+  `;
+}
+document.getElementById('btnGenBlotterReport').addEventListener('click', ()=>{
+  document.getElementById('blotterReportPreview').innerHTML = buildBlotterReportHtml();
+  document.getElementById('blotterReportCard').style.display = 'block';
+  document.getElementById('blotterReportCard').scrollIntoView({behavior:'smooth'});
+});
+document.getElementById('btnBlotterWord').addEventListener('click', ()=>{
+  const content = document.getElementById('blotterReportPreview').innerHTML;
+  const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Blotter Report</title></head><body style=\"font-family:Georgia,serif;\">";
+  const postHtml = "</body></html>";
+  const fullHtml = preHtml + content + postHtml;
+  const blob = new Blob(['\ufeff', fullHtml], {type:'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'blotter-report-'+today()+'.doc';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Word document downloaded.');
+});
+
+// ---------- Officials ----------
+let o_photoData = '';
+document.getElementById('o_photo').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    o_photoData = reader.result;
+    const img = document.getElementById('o_photoPreview');
+    img.src = o_photoData; img.style.display = 'block';
+    document.getElementById('o_photoPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+function saveOfficial(){
+  const name = o_name.value.trim();
+  if(!name){ toast('Please fill in Name.'); return; }
+  const o = {id:uid(), name, position:o_position.value.trim(), contact:o_contact.value.trim(), photo:o_photoData};
+  db.officials.push(o);
+  document.getElementById('officialForm').reset();
+  o_photoData = '';
+  document.getElementById('o_photoPreview').style.display='none';
+  document.getElementById('o_photoPreview').src='';
+  document.getElementById('o_photoPlaceholder').style.display='block';
+  markChanged(); renderOfficials();
+  logActivity('Official added', o.name+' — '+o.position);
+  toast('Official saved.');
+}
+document.getElementById('btnSaveOfficial').addEventListener('click', saveOfficial);
+function renderOfficials(){
+  const tbody = document.querySelector('#officialsTable tbody');
+  tbody.innerHTML = db.officials.map(o=>`
+    <tr><td>${o.photo? `<img src="${o.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--line);">` : `<div style="width:40px;height:40px;border-radius:50%;background:#EDE7D6;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;font-size:11px;">—</div>`}</td>
+    <td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.position)}</td><td>${escapeHtml(o.contact)||'—'}</td>
+    <td class="no-print"><button class="btn btn-danger btn-sm" onclick="deleteOfficial('${o.id}')">Delete</button></td></tr>`).join('');
+  document.getElementById('officialsEmpty').style.display = db.officials.length? 'none':'block';
+}
+function deleteOfficial(id){ db.officials = db.officials.filter(o=>o.id!==id); markChanged(); renderOfficials(); }
+
+// ---------- BHW (Barangay Health Workers) ----------
+let bhw_photoData = '';
+document.getElementById('bhw_photo').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    bhw_photoData = reader.result;
+    const img = document.getElementById('bhw_photoPreview');
+    img.src = bhw_photoData; img.style.display = 'block';
+    document.getElementById('bhw_photoPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+function saveBhw(){
+  const name = bhw_name.value.trim();
+  if(!name){ toast('Please fill in Name.'); return; }
+  const b = {id:uid(), name, area:bhw_area.value.trim(), contact:bhw_contact.value.trim(), photo:bhw_photoData};
+  db.bhw.push(b);
+  document.getElementById('bhwForm').reset();
+  bhw_photoData = '';
+  document.getElementById('bhw_photoPreview').style.display='none';
+  document.getElementById('bhw_photoPreview').src='';
+  document.getElementById('bhw_photoPlaceholder').style.display='block';
+  markChanged(); renderBhw();
+  logActivity('BHW added', b.name+' — '+(b.area||'—'));
+  toast('BHW record saved.');
+}
+document.getElementById('btnSaveBhw').addEventListener('click', saveBhw);
+function renderBhw(){
+  const tbody = document.querySelector('#bhwTable tbody');
+  tbody.innerHTML = db.bhw.map(b=>`
+    <tr><td>${b.photo? `<img src="${b.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--line);">` : `<div style="width:40px;height:40px;border-radius:50%;background:#EDE7D6;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;font-size:11px;">—</div>`}</td>
+    <td>${escapeHtml(b.name)}</td><td>${escapeHtml(b.area)||'—'}</td><td>${escapeHtml(b.contact)||'—'}</td>
+    <td class="no-print"><button class="btn btn-danger btn-sm" onclick="deleteBhw('${b.id}')">Delete</button></td></tr>`).join('');
+  document.getElementById('bhwEmpty').style.display = db.bhw.length? 'none':'block';
+}
+function deleteBhw(id){ db.bhw = db.bhw.filter(b=>b.id!==id); markChanged(); renderBhw(); }
+
+// ---------- Health Census (by Purok/Area) ----------
+function computeCensusRows(){
+  const groups = {};
+  db.residents.forEach(r=>{
+    const key = (r.purok||'').trim() || 'Unspecified';
+    if(!groups[key]) groups[key] = {purok:key, total:0, male:0, female:0, senior:0, minor:0, infant:0, pregnant:0, pwd:0};
+    const g = groups[key];
+    g.total++;
+    if(r.gender==='Male') g.male++;
+    if(r.gender==='Female') g.female++;
+    if(Number(r.age)>=60) g.senior++;
+    if(r.age!=='' && r.age!=null && Number(r.age)<18) g.minor++;
+    if(r.infant) g.infant++;
+    if(r.pregnant) g.pregnant++;
+    if(r.pwd) g.pwd++;
+  });
+  return Object.values(groups).sort((a,b)=> a.purok.localeCompare(b.purok));
+}
+function renderCensus(){
+  const rows = computeCensusRows();
+  const tbody = document.querySelector('#censusTable tbody');
+  const tfoot = document.querySelector('#censusTable tfoot');
+  tbody.innerHTML = rows.map(g=>`
+    <tr><td>${escapeHtml(g.purok)}</td><td>${g.total}</td><td>${g.male}</td><td>${g.female}</td>
+    <td>${g.senior}</td><td>${g.minor}</td><td>${g.infant}</td><td>${g.pregnant}</td><td>${g.pwd}</td></tr>`).join('');
+  const totals = rows.reduce((s,g)=>({
+    total:s.total+g.total, male:s.male+g.male, female:s.female+g.female, senior:s.senior+g.senior,
+    minor:s.minor+g.minor, infant:s.infant+g.infant, pregnant:s.pregnant+g.pregnant, pwd:s.pwd+g.pwd
+  }), {total:0,male:0,female:0,senior:0,minor:0,infant:0,pregnant:0,pwd:0});
+  tfoot.innerHTML = rows.length ? `
+    <tr style="font-weight:700;background:#FBF9F4;"><td>TOTAL</td><td>${totals.total}</td><td>${totals.male}</td><td>${totals.female}</td>
+    <td>${totals.senior}</td><td>${totals.minor}</td><td>${totals.infant}</td><td>${totals.pregnant}</td><td>${totals.pwd}</td></tr>` : '';
+  document.getElementById('censusEmpty').style.display = rows.length? 'none':'block';
+  document.getElementById('censusCard').querySelector('table').style.display = rows.length? '' : 'none';
+}
+document.getElementById('btnExportCensusCsv').addEventListener('click', ()=>{
+  const rows = computeCensusRows();
+  if(!rows.length){ toast('No census data to export.'); return; }
+  const csv = toCsv(rows, [
+    {key:'purok',label:'Purok / Area'},{key:'total',label:'Total Pop.'},{key:'male',label:'Male'},{key:'female',label:'Female'},
+    {key:'senior',label:'Senior'},{key:'minor',label:'Minor'},{key:'infant',label:'Infant'},{key:'pregnant',label:'Pregnant'},{key:'pwd',label:'PWD'}
+  ]);
+  downloadCsv('health-census-'+today()+'.csv', csv);
+  toast('Health census exported as CSV.');
+});
+
+// ---------- Report by Precinct Number ----------
+function computePrecinctRows(){
+  const groups = {};
+  db.residents.forEach(r=>{
+    const key = (r.precinct||'').trim() || 'Unspecified';
+    if(!groups[key]) groups[key] = {precinct:key, total:0, male:0, female:0, votingAge:0, minor:0};
+    const g = groups[key];
+    g.total++;
+    if(r.gender==='Male') g.male++;
+    if(r.gender==='Female') g.female++;
+    if(r.age!=='' && r.age!=null && Number(r.age)>=18) g.votingAge++;
+    if(r.age!=='' && r.age!=null && Number(r.age)<18) g.minor++;
+  });
+  return Object.values(groups).sort((a,b)=> a.precinct.localeCompare(b.precinct));
+}
+function renderPrecinctReport(){
+  const rows = computePrecinctRows();
+  const tbody = document.querySelector('#precinctTable tbody');
+  const tfoot = document.querySelector('#precinctTable tfoot');
+  tbody.innerHTML = rows.map(g=>`
+    <tr><td>${escapeHtml(g.precinct)}</td><td>${g.total}</td><td>${g.male}</td><td>${g.female}</td>
+    <td>${g.votingAge}</td><td>${g.minor}</td></tr>`).join('');
+  const totals = rows.reduce((s,g)=>({
+    total:s.total+g.total, male:s.male+g.male, female:s.female+g.female, votingAge:s.votingAge+g.votingAge, minor:s.minor+g.minor
+  }), {total:0,male:0,female:0,votingAge:0,minor:0});
+  tfoot.innerHTML = rows.length ? `
+    <tr style="font-weight:700;background:#FBF9F4;"><td>TOTAL</td><td>${totals.total}</td><td>${totals.male}</td><td>${totals.female}</td>
+    <td>${totals.votingAge}</td><td>${totals.minor}</td></tr>` : '';
+  document.getElementById('precinctEmpty').style.display = rows.length? 'none':'block';
+  document.getElementById('precinctCard').querySelector('table').style.display = rows.length? '' : 'none';
+}
+document.getElementById('btnExportPrecinctCsv').addEventListener('click', ()=>{
+  const rows = computePrecinctRows();
+  if(!rows.length){ toast('No precinct data to export.'); return; }
+  const csv = toCsv(rows, [
+    {key:'precinct',label:'Precinct No.'},{key:'total',label:'Total'},{key:'male',label:'Male'},{key:'female',label:'Female'},
+    {key:'votingAge',label:'Voting Age (18+)'},{key:'minor',label:'Minor (Below 18)'}
+  ]);
+  downloadCsv('precinct-report-'+today()+'.csv', csv);
+  toast('Precinct report exported as CSV.');
+});
+
+// ---------- Org Chart ----------
+function orgNodeHtml(o){
+  const photo = o.photo
+    ? `<img class="org-photo" src="${o.photo}">`
+    : `<div class="org-photo-placeholder">No Photo</div>`;
+  return `<div class="org-node">${photo}<div class="org-name">${escapeHtml(o.name)}</div><div class="org-position">${escapeHtml(o.position)||'—'}</div></div>`;
+}
+function buildOrgChartHtml(){
+  const list = db.officials.slice();
+  if(!list.length) return '<div class="empty">No officials added yet.</div>';
+
+  const isHead = p => /punong barangay|barangay chairman|^chairman$/i.test(p||'');
+  const isKagawad = p => /kagawad|councilor/i.test(p||'');
+
+  const head = list.filter(o=>isHead(o.position));
+  const kagawads = list.filter(o=>isKagawad(o.position) && !isHead(o.position));
+  const others = list.filter(o=> !isHead(o.position) && !isKagawad(o.position));
+
+  let html = '<div class="org-level-wrap">';
+  if(head.length){
+    html += `<div class="org-row org-row-single">${head.map(orgNodeHtml).join('')}</div>`;
+  }
+  html += '</div>';
+
+  if(kagawads.length){
+    if(head.length) html += `<div class="org-connector"></div>`;
+    html += `<div class="org-level-wrap"><div class="org-row${head.length? '' : ' org-row-single'}">${kagawads.map(orgNodeHtml).join('')}</div></div>`;
+  }
+  if(others.length){
+    if(head.length || kagawads.length) html += `<div class="org-connector"></div>`;
+    html += `<div class="org-level-wrap"><div class="org-row${(head.length||kagawads.length)? '' : ' org-row-single'}">${others.map(orgNodeHtml).join('')}</div></div>`;
+  }
+  return html;
+}
+document.getElementById('btnGenOrgChart').addEventListener('click', ()=>{
+  const brgyLine = [db.brgy.name, db.brgy.city, db.brgy.province].filter(Boolean).join(', ') || 'Barangay Name Not Set — see Settings';
+  document.getElementById('orgChartHeader').innerHTML = `<div class="seal2" style="width:56px;height:56px;margin:0 auto 8px;">${sealHtml()}</div><h3 style="margin:0;font-size:13px;letter-spacing:1px;color:var(--ink-soft);text-transform:uppercase;">Republic of the Philippines</h3><h2 style="margin:2px 0;font-size:19px;">${escapeHtml(brgyLine)}</h2><div style="font-size:12px;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Organizational Chart</div>`;
+  document.getElementById('orgChartPreview').innerHTML = buildOrgChartHtml();
+  document.getElementById('orgChartCard').style.display = 'block';
+  document.getElementById('orgChartCard').scrollIntoView({behavior:'smooth'});
+});
+
+// ---------- CSV Export ----------
+function toCsv(rows, columns){
+  // columns: [{key, label}]
+  const escapeCsv = v=>{
+    const s = String(v??'');
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  };
+  const header = columns.map(c=>escapeCsv(c.label)).join(',');
+  const body = rows.map(r=>columns.map(c=>escapeCsv(r[c.key])).join(',')).join('\n');
+  return header+'\n'+body;
+}
+function downloadCsv(filename, csvString){
+  const blob = new Blob(["\uFEFF"+csvString], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('btnExportResidentsCsv').addEventListener('click', ()=>{
+  if(!db.residents.length){ toast('No residents to export.'); return; }
+  const csv = toCsv(db.residents.map(r=>({
+    ...r, pregnant: r.pregnant?'Yes':'No', infant: r.infant?'Yes':'No', pwd: r.pwd?'Yes':'No'
+  })), [
+    {key:'surname',label:'Surname'},{key:'givenname',label:'Given Name'},{key:'mi',label:'M.I.'},{key:'name',label:'Full Name'},{key:'age',label:'Age'},{key:'gender',label:'Gender'},
+    {key:'civil',label:'Civil Status'},{key:'purok',label:'Purok'},{key:'blk',label:'Blk.'},{key:'lot',label:'Lot'},{key:'address',label:'Address'},
+    {key:'contact',label:'Contact'},{key:'occupation',label:'Occupation'},{key:'precinct',label:'Precinct No.'},
+    {key:'pregnant',label:'Pregnant'},{key:'infant',label:'Infant'},{key:'pwd',label:'PWD'}
+  ]);
+  downloadCsv('residents-'+today()+'.csv', csv);
+  toast('Residents exported as CSV.');
+});
+document.getElementById('btnExportHouseholdsCsv').addEventListener('click', ()=>{
+  if(!db.households.length){ toast('No households to export.'); return; }
+  const csv = toCsv(db.households, [
+    {key:'head',label:'Household Head'},{key:'purok',label:'Purok'},{key:'address',label:'Address'},{key:'members',label:'Members'}
+  ]);
+  downloadCsv('households-'+today()+'.csv', csv);
+  toast('Households exported as CSV.');
+});
+document.getElementById('btnExportCertsCsv').addEventListener('click', ()=>{
+  if(!db.certificates.length){ toast('No certificates to export.'); return; }
+  const csv = toCsv(db.certificates, [
+    {key:'date',label:'Date'},{key:'name',label:'Name'},{key:'type',label:'Type'},{key:'purpose',label:'Purpose'},
+    {key:'amount',label:'Amount Paid'},{key:'orNo',label:'OR No.'},{key:'payMethod',label:'Payment Method'}
+  ]);
+  downloadCsv('certificates-'+today()+'.csv', csv);
+  toast('Certificates log exported as CSV.');
+});
+document.getElementById('btnExportBizCsv').addEventListener('click', ()=>{
+  if(!db.businessPermits.length){ toast('No business permits to export.'); return; }
+  const csv = toCsv(db.businessPermits, [
+    {key:'permitNo',label:'Permit No.'},{key:'date',label:'Date'},{key:'owner',label:'Owner'},{key:'bizname',label:'Business Name'},{key:'kind',label:'Kind of Business'},
+    {key:'address',label:'Business Address'},{key:'validUntil',label:'Valid Until'},{key:'amount',label:'Amount Paid'},{key:'orNo',label:'OR No.'},{key:'payMethod',label:'Payment Method'}
+  ]);
+  downloadCsv('business-permits-'+today()+'.csv', csv);
+  toast('Business permits exported as CSV.');
+});
+document.getElementById('btnExportBlotterCsv').addEventListener('click', ()=>{
+  if(!db.blotter.length){ toast('No blotter entries to export.'); return; }
+  const csv = toCsv(db.blotter, [
+    {key:'date',label:'Date'},{key:'complainant',label:'Complainant'},{key:'respondent',label:'Respondent'},
+    {key:'status',label:'Status'},{key:'narrative',label:'Narrative'}
+  ]);
+  downloadCsv('blotter-'+today()+'.csv', csv);
+  toast('Blotter records exported as CSV.');
+});
+document.getElementById('btnExportOfficialsCsv').addEventListener('click', ()=>{
+  if(!db.officials.length){ toast('No officials to export.'); return; }
+  const csv = toCsv(db.officials, [
+    {key:'name',label:'Name'},{key:'position',label:'Position'},{key:'contact',label:'Contact'}
+  ]);
+  downloadCsv('officials-'+today()+'.csv', csv);
+  toast('Officials exported as CSV.');
+});
+document.getElementById('btnExportBhwCsv').addEventListener('click', ()=>{
+  if(!db.bhw.length){ toast('No BHW records to export.'); return; }
+  const csv = toCsv(db.bhw, [
+    {key:'name',label:'Name'},{key:'area',label:'Area of Coverage'},{key:'contact',label:'Contact'}
+  ]);
+  downloadCsv('bhw-'+today()+'.csv', csv);
+  toast('BHW records exported as CSV.');
+});
+document.getElementById('btnExportIdsCsv').addEventListener('click', ()=>{
+  if(!db.brgyIds.length){ toast('No issued IDs to export.'); return; }
+  const csv = toCsv(db.brgyIds, [
+    {key:'idNo',label:'ID No.'},{key:'name',label:'Name'},{key:'dateIssued',label:'Date Issued'},{key:'validUntil',label:'Valid Until'}
+  ]);
+  downloadCsv('brgy-ids-'+today()+'.csv', csv);
+  toast('Issued IDs exported as CSV.');
+});
+document.getElementById('btnExportAllXlsx').addEventListener('click', ()=>{
+  if(typeof XLSX === 'undefined'){
+    toast('Excel export needs an internet connection the first time — please connect and try again.');
+    return;
+  }
+  const hasAny = db.residents.length || db.households.length || db.certificates.length || db.blotter.length || db.officials.length || db.bhw.length || db.brgyIds.length || db.businessPermits.length;
+  if(!hasAny){ toast('No data to export yet.'); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  const residentsData = db.residents.map(r=>({
+    'Surname':r.surname, 'Given Name':r.givenname, 'M.I.':r.mi, 'Full Name':r.name, 'Age':r.age, 'Gender':r.gender, 'Civil Status':r.civil, 'Purok':r.purok,
+    'Blk.':r.blk, 'Lot':r.lot, 'Address':r.address, 'Contact':r.contact, 'Occupation':r.occupation,
+    'Precinct No.':r.precinct, 'Pregnant':r.pregnant?'Yes':'No', 'Infant':r.infant?'Yes':'No', 'PWD':r.pwd?'Yes':'No'
+  }));
+  const householdsData = db.households.map(h=>({
+    'Household Head':h.head, 'Purok':h.purok, 'Address':h.address, 'Members':h.members
+  }));
+  const certsData = db.certificates.map(c=>({
+    'Date':c.date, 'Name':c.name, 'Type':c.type, 'Purpose':c.purpose,
+    'Amount Paid':c.amount, 'OR No.':c.orNo, 'Payment Method':c.payMethod
+  }));
+  const bizData = db.businessPermits.map(b=>({
+    'Permit No.':b.permitNo, 'Date':b.date, 'Owner':b.owner, 'Business Name':b.bizname, 'Kind of Business':b.kind, 'Business Address':b.address,
+    'Valid Until':b.validUntil, 'Amount Paid':b.amount, 'OR No.':b.orNo, 'Payment Method':b.payMethod
+  }));
+  const blotterData = db.blotter.map(b=>({
+    'Date':b.date, 'Complainant':b.complainant, 'Respondent':b.respondent, 'Status':b.status, 'Narrative':b.narrative
+  }));
+  const officialsData = db.officials.map(o=>({
+    'Name':o.name, 'Position':o.position, 'Contact':o.contact
+  }));
+  const bhwData = db.bhw.map(b=>({
+    'Name':b.name, 'Area of Coverage':b.area, 'Contact':b.contact
+  }));
+  const idsData = db.brgyIds.map(i=>({
+    'ID No.':i.idNo, 'Name':i.name, 'Date Issued':i.dateIssued, 'Valid Until':i.validUntil
+  }));
+
+  function addSheet(data, sheetName){
+    const ws = XLSX.utils.json_to_sheet(data.length? data : [{'No Data':''}]);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  }
+  addSheet(residentsData, 'Residents');
+  addSheet(householdsData, 'Households');
+  addSheet(certsData, 'Certificates');
+  addSheet(bizData, 'Business Permits');
+  addSheet(blotterData, 'Blotter');
+  addSheet(officialsData, 'Officials');
+  addSheet(bhwData, 'BHW');
+  addSheet(idsData, 'Barangay IDs');
+
+  XLSX.writeFile(wb, 'brgy-all-data-'+today()+'.xlsx');
+  toast('Excel file downloaded.');
+});
+
+// ---------- Settings / Data ----------
+function applyLogoToAllDisplays(){
+  const logo = db.brgy.logo;
+  const inner = logo
+    ? `<img src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : `<span class="seal-text">${escapeHtml(db.brgy.sealLetter || 'B')}</span>`;
+  const sidebarSeal = document.getElementById('sidebarSeal');
+  const loginSeal = document.getElementById('loginSeal');
+  if(sidebarSeal) sidebarSeal.innerHTML = inner;
+  if(loginSeal) loginSeal.innerHTML = inner;
+}
+let s_logoData = '';
+document.getElementById('s_logo').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    s_logoData = reader.result;
+    const img = document.getElementById('s_logoPreview');
+    img.src = s_logoData; img.style.display = 'block';
+    document.getElementById('s_logoPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('btnRemoveLogo').addEventListener('click', ()=>{
+  s_logoData = '';
+  document.getElementById('s_logo').value = '';
+  document.getElementById('s_logoPreview').style.display = 'none';
+  document.getElementById('s_logoPreview').src = '';
+  document.getElementById('s_logoPlaceholder').style.display = 'block';
+});
+document.getElementById('btnSaveSettings').addEventListener('click', ()=>{
+  db.brgy = {name:s_brgyname.value.trim(), city:s_city.value.trim(), province:s_province.value.trim(), logo:s_logoData, sealLetter:s_sealletter.value.trim()||'B'};
+  document.getElementById('brgyNameTag').textContent = db.brgy.name || 'Configure name in Settings';
+  applyLogoToAllDisplays();
+  markChanged();
+  toast('Barangay details saved.');
+});
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'brgy-data-'+today()+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  markSaved();
+  toast('Database backed up.');
+});
+document.getElementById('importFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!confirm('Restoring this file will replace ALL current data in the system (residents, households, certificates, blotter, officials, BHW, IDs, and login). This cannot be undone. Continue?')){
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      Object.assign(db, {
+        brgy: data.brgy||{name:"",city:"",province:"",logo:"",sealLetter:"B"},
+        auth: data.auth||{user:"admin",pass:"admin123"},
+        residents: data.residents||[], households: data.households||[],
+        certificates: data.certificates||[], blotter: data.blotter||[],
+        officials: data.officials||[], bhw: data.bhw||[], brgyIds: data.brgyIds||[], businessPermits: data.businessPermits||[], activity: data.activity||[]
+      });
+      s_brgyname.value = db.brgy.name||''; s_city.value = db.brgy.city||''; s_province.value = db.brgy.province||''; s_sealletter.value = db.brgy.sealLetter||'B';
+      s_logoData = db.brgy.logo || '';
+      if(s_logoData){
+        document.getElementById('s_logoPreview').src = s_logoData;
+        document.getElementById('s_logoPreview').style.display = 'block';
+        document.getElementById('s_logoPlaceholder').style.display = 'none';
+      } else {
+        document.getElementById('s_logoPreview').style.display = 'none';
+        document.getElementById('s_logoPlaceholder').style.display = 'block';
+      }
+      document.getElementById('brgyNameTag').textContent = db.brgy.name || 'Configure name in Settings';
+      applyLogoToAllDisplays();
+      renderAll();
+      markSaved();
+      autoSaveNow();
+      toast('Database restored successfully.');
+    }catch(err){ toast('Restore failed — invalid file.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+document.getElementById('btnClearAll').addEventListener('click', ()=>{
+  if(!confirm('This clears all records in this session AND this browser\'s auto-saved copy. Continue?')) return;
+  db.residents=[]; db.households=[]; db.certificates=[]; db.blotter=[]; db.officials=[]; db.bhw=[]; db.brgyIds=[]; db.businessPermits=[]; db.activity=[];
+  try{ localStorage.removeItem(AUTOSAVE_KEY); }catch(e){}
+  renderAll(); markChanged();
+  toast('All data cleared.');
+});
+
+// ---------- Dashboard / Stats ----------
+function renderStats(){
+  document.getElementById('statResidents').textContent = db.residents.length;
+  document.getElementById('statHouseholds').textContent = db.households.length;
+  document.getElementById('statCerts').textContent = db.certificates.length;
+  const certCollections = db.certificates.reduce((sum,c)=>sum+(Number(c.amount)||0), 0);
+  const bizCollections = db.businessPermits.reduce((sum,b)=>sum+(Number(b.amount)||0), 0);
+  const totalCollections = certCollections + bizCollections;
+  document.getElementById('statCollections').textContent = '₱' + totalCollections.toFixed(2);
+  document.getElementById('statBlotterOpen').textContent = db.blotter.filter(b=>b.status==='Open').length;
+
+  const r = db.residents;
+  const male = r.filter(x=>x.gender==='Male').length;
+  const female = r.filter(x=>x.gender==='Female').length;
+  const senior = r.filter(x=>Number(x.age)>=60).length;
+  const minor = r.filter(x=>x.age!=='' && x.age!=null && Number(x.age)<18).length;
+  const infant = r.filter(x=>x.infant).length;
+  const pregnant = r.filter(x=>x.pregnant).length;
+  const pwd = r.filter(x=>x.pwd).length;
+
+  document.getElementById('repHouseholds').textContent = db.households.length;
+  document.getElementById('repTotal').textContent = r.length;
+  document.getElementById('repMale').textContent = male;
+  document.getElementById('repFemale').textContent = female;
+  document.getElementById('repSenior').textContent = senior;
+  document.getElementById('repMinor').textContent = minor;
+  document.getElementById('repInfant').textContent = infant;
+  document.getElementById('repPregnant').textContent = pregnant;
+  document.getElementById('repPwd').textContent = pwd;
+
+  drawBarChart('popBarCanvas', [
+    {label:'Male', value:male, color:'#13315C'},
+    {label:'Female', value:female, color:'#C9962C'},
+    {label:'Senior', value:senior, color:'#2F6F4E'},
+    {label:'Minor', value:minor, color:'#8C1F28'},
+    {label:'Infant', value:infant, color:'#5B6472'},
+    {label:'Pregnant', value:pregnant, color:'#E4C071'},
+    {label:'PWD', value:pwd, color:'#1E4373'}
+  ]);
+  drawPieChart('popPieCanvas', [
+    {label:'Male', value:male, color:'#13315C'},
+    {label:'Female', value:female, color:'#C9962C'}
+  ]);
+
+  document.getElementById('payTotal').textContent = '₱' + totalCollections.toFixed(2);
+  document.getElementById('payCerts').textContent = '₱' + certCollections.toFixed(2);
+  document.getElementById('payBiz').textContent = '₱' + bizCollections.toFixed(2);
+  document.getElementById('payCount').textContent = db.certificates.filter(c=>Number(c.amount)>0).length + db.businessPermits.filter(b=>Number(b.amount)>0).length;
+
+  const methods = ['Cash','GCash','Bank Transfer','Other'];
+  const methodTotals = methods.map(m=>{
+    const fromCerts = db.certificates.filter(c=>c.payMethod===m).reduce((s,c)=>s+(Number(c.amount)||0),0);
+    const fromBiz = db.businessPermits.filter(b=>b.payMethod===m).reduce((s,b)=>s+(Number(b.amount)||0),0);
+    return fromCerts + fromBiz;
+  });
+  drawBarChart('payBarCanvas', [
+    {label:'Cash', value:methodTotals[0], color:'#2F6F4E'},
+    {label:'GCash', value:methodTotals[1], color:'#13315C'},
+    {label:'Bank', value:methodTotals[2], color:'#C9962C'},
+    {label:'Other', value:methodTotals[3], color:'#8C1F28'}
+  ]);
+  drawPieChart('payPieCanvas', [
+    {label:'Certificates', value:certCollections, color:'#13315C'},
+    {label:'Business Permits', value:bizCollections, color:'#C9962C'}
+  ]);
+}
+
+// ---------- Canvas Charts (no external library) ----------
+function drawBarChart(canvasId, items){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const padding = 34;
+  const max = Math.max(1, ...items.map(i=>i.value));
+  const chartH = H - padding*2;
+  const gap = (W - padding*2) / items.length;
+  const barW = gap * 0.55;
+  ctx.textAlign = 'center';
+  items.forEach((item,i)=>{
+    const barH = max? (item.value/max) * chartH : 0;
+    const x = padding + gap*i + (gap-barW)/2;
+    const y = H - padding - barH;
+    ctx.fillStyle = item.color;
+    ctx.fillRect(x, y, barW, barH);
+    ctx.fillStyle = '#1C2430';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(item.value, x+barW/2, y-6);
+    ctx.font = '10px sans-serif';
+    ctx.fillText(item.label, x+barW/2, H-padding+14);
+  });
+  ctx.strokeStyle = '#D8D2C0';
+  ctx.beginPath();
+  ctx.moveTo(padding, H-padding);
+  ctx.lineTo(W-padding, H-padding);
+  ctx.stroke();
+}
+function drawPieChart(canvasId, items){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const total = items.reduce((s,i)=>s+i.value,0);
+  const cx = W*0.32, cy = H/2, r = Math.min(cx,cy)-14;
+  if(total === 0){
+    ctx.fillStyle = '#9AA3B0';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data yet', W/2, H/2);
+    return;
+  }
+  let start = -Math.PI/2;
+  items.forEach(item=>{
+    const angle = (item.value/total) * Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+angle);
+    ctx.closePath();
+    ctx.fillStyle = item.color;
+    ctx.fill();
+    start += angle;
+  });
+  let legendY = H/2 - (items.length*18)/2;
+  items.forEach(item=>{
+    const pct = Math.round(item.value/total*100);
+    ctx.fillStyle = item.color;
+    ctx.fillRect(W*0.6, legendY, 10, 10);
+    ctx.fillStyle = '#1C2430';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${item.label}: ${item.value} (${pct}%)`, W*0.6+15, legendY+9);
+    legendY += 20;
+  });
+}
+function renderActivity(){
+  const tbody = document.querySelector('#activityTable tbody');
+  tbody.innerHTML = db.activity.map(a=>`<tr><td>${a.date}</td><td>${a.type}</td><td>${escapeHtml(a.details)}</td></tr>`).join('');
+  document.getElementById('activityEmpty').style.display = db.activity.length? 'none':'block';
+}
+
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function renderAll(){
+  renderResidents(); renderHouseholds(); renderCerts(); renderBiz(); renderBlotter(); renderOfficials(); renderBhw(); renderIds(); renderCertResidentOptions(); renderBizResidentOptions(); renderIdResidentOptions(); renderStats(); renderActivity(); renderCensus(); renderPrecinctReport();
+}
+renderAll();
+applyLogoToAllDisplays();
+document.getElementById('s_sealletter').value = db.brgy.sealLetter || 'B';
+document.getElementById('s_brgyname').value = db.brgy.name || '';
+document.getElementById('s_city').value = db.brgy.city || '';
+document.getElementById('s_province').value = db.brgy.province || '';
+document.getElementById('brgyNameTag').textContent = db.brgy.name || 'Configure name in Settings';
+if(db.brgy.logo){
+  s_logoData = db.brgy.logo;
+  document.getElementById('s_logoPreview').src = s_logoData;
+  document.getElementById('s_logoPreview').style.display = 'block';
+  document.getElementById('s_logoPlaceholder').style.display = 'none';
+}
+if(hadAutosave){
+  document.getElementById('autosaveStatus').textContent = 'Restored from this browser\'s last auto-save';
+}
+</script>
+</body>
+</html>
